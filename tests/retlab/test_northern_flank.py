@@ -200,6 +200,25 @@ def test_the_road_and_the_sea_lanes(loaded: tuple[Campaign, ConflictTheater]) ->
     assert opposed == [frozenset(("Bardufoss", "Alta"))]
 
 
+def test_the_patrol_range_reaches_across_the_front(
+    loaded: tuple[Campaign, ConflictTheater],
+) -> None:
+    # A base is patrolled only when an enemy field is inside airbase_threat_range.
+    # At the stock 100 NM neither side flew a land-base BARCAP here.
+    campaign, theater = loaded
+    patrol_range = campaign.settings["airbase_threat_range"]
+    alta = theater.control_point_named("Alta")
+    bardufoss = theater.control_point_named("Bardufoss")
+    gap_nm = alta.position.distance_to_point(bardufoss.position) / 1852
+    assert 100 < gap_nm < patrol_range
+    # Every forward red field, so the rear interceptors have a station to fly to.
+    for name in ("Banak", "Kirkenes", "Koshka Yavr"):
+        field = theater.control_point_named(name)
+        assert field.position.distance_to_point(bardufoss.position) / 1852 < (
+            patrol_range
+        )
+
+
 def test_the_front_starts_at_the_lyngen_position(
     loaded: tuple[Campaign, ConflictTheater],
 ) -> None:

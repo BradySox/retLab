@@ -190,7 +190,24 @@ applies every mod toggle off and asserts nothing is stripped.
 | `ownfor_default_qra_reserve: 2`, `opfor_default_qra_reserve: 2` | §1; Bodo's Eagles and the Kola interceptors |
 | `c2_decapitation_effects` | Three C2 cells are authored (Severomorsk, Olenya, Banak) |
 | `max_mission_range_planes: 400` | A cap on each airframe's own range; opens Murmansk to the bombers |
+| `airbase_threat_range: 300` | Patrols. See below |
 | `squadron_start_full` | |
+
+**Patrol range (DM call 2026-10-10).** A base gets a BARCAP only when an enemy airfield is
+inside `airbase_threat_range`. The nearest opposed fields, Alta and Bardufoss, are 116 NM
+apart, so at the stock 100 NM neither side patrolled a land base: on turn 2 red flew no
+patrol and left 20 interceptors idle. Measured by re-planning that turn headless:
+
+| Range, on-station time | Red patrols | Blue patrols | Raids lost |
+|---|---|---|---|
+| 100 NM, 60 min (stock) | 0 | 2 (carrier) | none |
+| 300 NM, 60 min (**chosen**) | 3 to 4 pairs: Alta, Banak, Kirkenes, Koshka Yavr | 6 pairs: the carrier and the four land bases | none |
+| 200 NM, 30 min | 6 pairs | 15 pairs | blue: 2 of 5 strikes |
+| 300 NM, 30 min | 12 pairs | 18 pairs | red: the carrier strike; blue: 3 strikes and a DEAD |
+
+Severomorsk-1, Olenya and Monchegorsk are over 300 NM from any blue field and get no
+patrol at any setting; their cover is the QRA pair and the SAMs. The setting is shared by
+both sides. A campaign's settings apply to new games only.
 
 Left off on purpose: GPS jamming and ship-launched cruise missile raids. Neither is 1985 kit
 for the side that would use it here.
@@ -219,7 +236,7 @@ naval layout has no landing-ship slot.
 ## Not verified
 
 Everything above is measured headless. A fresh game builds, both sides plan a first turn, and
-the 13 lock tests pass. **Nothing has been flown.** Row B207 covers the first flight:
+the 14 lock tests pass. **Nothing has been flown.** Row B207 covers the first flight:
 
 - the SAM launchers stand level and raise;
 - the front forms on drivable ground near Skibotn;
