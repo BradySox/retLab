@@ -453,7 +453,7 @@ linked design note.
 106. **Package route and map route editing** — routes are edited on the map (drag, double-click to add, right-click to delete); the join-to-IP and target-to-split legs belong to the package, so an edit there lands on every flight.
 107. **Briefing screen picture** — RetLab's own load-screen picture; drop `briefing.png` or `briefing.jpg` into `Saved Games\DCS\Retribution` to use yours.
 108. **Flight report cards** — the debrief grades every blue flight that flew, yours first, from §91's records. A record, never a reward.
-109. **Outside AI reads red's turn** — a REST API under `/retribution-ai/*` for an AI on the same PC: it reports what looks wrong in red's plan, and with Developer tools > Outside AI plans red ticked it plans red's packages, TOTs, stances and buying (the scripted planner fills red at Take Off if it planned nothing). Developer tools > Copy AI connect link. Red only; blue's ATO is never served. Ported from juanjux/dcs-escalation; loadouts, waypoints, transfers, ships, repairs and MCP are staged after it.
+109. **Outside AI reads red's turn** — a REST API under `/retribution-ai/*` for an AI on the same PC: it reports what looks wrong in red's plan, and with Developer tools > Outside AI plans red ticked it plans red's packages, TOTs, stances and buying, starting from the plan the scripted planner still makes every turn. Developer tools > Copy AI connect link. Red only; blue's ATO is never served. Ported from juanjux/dcs-escalation; loadouts, waypoints, transfers, ships, repairs and MCP are staged after it.
 
 ### Retired, removed or shelved — do not restore
 

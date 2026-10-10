@@ -11475,9 +11475,8 @@ call that reversed the 2026-08-24 "no LLM" rule, the stages and what was left ou
   briefings in `resources/agent/`.
 - `game/commander/missionproposals.py`, `packagebuilder.py`, `game/squadrons/airwing.py`:
   `preferred_squadron`.
-- `game/game.py` (`opfor_ai_enabled`, `opfor_ai_notes`), `game/coalition.py`
-  (`initialize_turn` stands red's planner down), `qt_ui/widgets/QTopPanel.py` (Take Off
-  fallback).
+- `game/game.py` (`opfor_ai_enabled`, `opfor_ai_notes`), `qt_ui/widgets/QTopPanel.py`
+  (Take Off fallback).
 - `game/server/retributionai/routes.py`; mounted in `game/server/app.py`.
 - `game/server/security.py`: token by `X-API-Key` header or `?token=`.
 - `qt_ui/windows/QLiberationWindow.py`: `copy_ai_connect_link`, `set_opfor_ai`.
@@ -11487,8 +11486,9 @@ call that reversed the 2026-08-24 "no LLM" rule, the stages and what was left ou
 
 - Red only, enforced in `service.opfor_only`. Blue's ATO is never served.
 - Reads never mutate game state. Writes need the toggle on (`service._writable_game`).
-- With the toggle on, red's scripted missions and buying stop, and with them red's
-  automatic repairs (§68) until 2b. If red has no packages at Take Off, the scripted
-  planner plans red's missions.
+- The scripted planner plans and buys for red at every turn start and mid-turn re-plan,
+  toggle on or off (2026-10-10; it stood down for the AI before, which left red empty
+  after a re-roll and its budget unspent). The AI edits that plan. If red has no packages
+  at Take Off, the scripted planner plans red's missions again.
 - Only the AI routes need the token; the map server's routes are unchanged.
 - No setting: the toggle is saved on the `Game`.
