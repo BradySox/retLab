@@ -11470,6 +11470,17 @@ transfers, ships, repairs, squadron moves) and MCP are agreed, not started.
 **Design note:** [retlab-llm-opfor-notes.md](design/retlab-llm-opfor-notes.md) has the DM
 call that reversed the 2026-08-24 "no LLM" rule, the stages and what was left out.
 
+What the read side reports, where it differs from the raw objects (2026-10-10, after the
+first live reviews on Kola):
+
+- A flight's `weapons` are the fit the mission is built with: the weapon-date rule
+  applied, by weapon name. The planned fit listed weapons the mission never loads.
+- `validate` fails a plan only for an uncrewed seat or a TOT that cannot be made. A start
+  the §104 early mission start covers (up to 30 minutes) is a note, as is a TOT after
+  the human's mission length. The scripted planner's own plan produces both.
+- `prev_turns.events` names the sides Blue and Red. The campaign log is written for the
+  human, so red's own arrivals read "Enemy reinforcements".
+
 ### Files
 
 - `game/agent/views.py`, `service.py`, `mapimage.py`, `planner.py`, `schemas.py`;

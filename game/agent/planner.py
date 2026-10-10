@@ -22,6 +22,7 @@ from game.ato.flighttype import FlightType
 from game.commander.missionproposals import EscortType, ProposedFlight, ProposedMission
 from game.commander.packagefulfiller import PackageFulfiller
 from game.profiling import MultiEventTracer
+from game.sim.missionstart import EARLY_START_CAP, launches_with_mission
 from game.utils import meters, nautical_miles
 
 if TYPE_CHECKING:
@@ -341,18 +342,40 @@ def earliest_tot_minutes(package: Package) -> Optional[tuple[int, str]]:
     return math.ceil(duration[0].total_seconds() / 60), duration[1]
 
 
+def early_start_reach(package: Package) -> timedelta:
+    """How far before the turn clock this package's ground starts may begin (§104)."""
+    return timedelta() if launches_with_mission(package) else EARLY_START_CAP
+
+
 def tot_shortfall(
     package: Package, now: datetime, tot: Optional[datetime]
 ) -> Optional[tuple[int, str]]:
     """(earliest minute, base) when the package cannot make ``tot``. Compared in full
-    precision with 30 s of grace: rounding read every ASAP package a minute late."""
+    precision with 30 s of grace: rounding read every ASAP package a minute late. A
+    start the early mission start covers is not a shortfall: the scripted planner's
+    own packages land there when a later package lengthens a field's runway queue."""
     duration = earliest_tot_duration(package)
     if duration is None or tot is None:
         return None
     needed, where = duration
+    needed -= early_start_reach(package)
     if tot + timedelta(seconds=30) >= now + needed:
         return None
     return math.ceil(needed.total_seconds() / 60), where
+
+
+def early_start_minutes(
+    package: Package, now: datetime, tot: Optional[datetime]
+) -> Optional[int]:
+    """Minutes before the turn clock the mission must start for this package."""
+    duration = earliest_tot_duration(package)
+    if duration is None or tot is None or launches_with_mission(package):
+        return None
+    lead = now + duration[0] - tot - timedelta(seconds=30)
+    if lead <= timedelta():
+        return None
+    cap = int(EARLY_START_CAP.total_seconds() // 60)
+    return min(math.ceil(lead.total_seconds() / 60), cap)
 
 
 def _apply_tot(package: Package, tot_minutes: Optional[int], now: datetime) -> None:
@@ -512,6 +535,7 @@ def validate_plan(game: Game, side: str) -> schemas.ValidateResult:
     now = game.conditions.start_time
     checks: list[schemas.PackageCheck] = []
     issues: list[str] = []
+    notes: list[str] = []
     for i, package in enumerate(coalition.ato.packages):
         view = views.build_package(i, package)
         tot = package.time_over_target
@@ -521,16 +545,25 @@ def validate_plan(game: Game, side: str) -> schemas.ValidateResult:
         if uncrewed:
             issues.append(f"#{i} {view.target}: {uncrewed} seats without a pilot")
         if not within:
-            issues.append(
-                f"#{i} {view.target}: TOT {tot_min} min is outside the "
-                f"0-{window} min mission window"
+            # The scripted planner's own long-range raids land here; not a fault.
+            notes.append(
+                f"#{i} {view.target}: TOT +{tot_min} min is after the {window} min "
+                f"the human plans to fly"
             )
         shortfall = tot_shortfall(package, now, tot)
+        early = None
         if shortfall is not None:
             issues.append(
                 f"#{i} {view.target}: TOT +{tot_min} min cannot be made from "
                 f"{shortfall[1]}; the earliest is +{shortfall[0]}"
             )
+        else:
+            early = early_start_minutes(package, now, tot)
+            if early:
+                notes.append(
+                    f"#{i} {view.target}: the mission starts {early} min early so "
+                    f"this package makes its TOT"
+                )
         checks.append(
             schemas.PackageCheck(
                 index=i,
@@ -540,17 +573,18 @@ def validate_plan(game: Game, side: str) -> schemas.ValidateResult:
                 within_window=within,
                 uncrewed=uncrewed or None,
                 earliest_tot_minutes=shortfall[0] if shortfall else None,
+                starts_mission_early_min=early,
             )
         )
-    hard = bool(issues)
     idle = views.idle_flyable_total(game, side)
     if idle:
-        issues.append(f"{idle} flyable aircraft have no task")
+        notes.append(f"{idle} flyable aircraft have no task")
     return schemas.ValidateResult(
-        ok=not hard,
+        ok=not issues,
         mission_window_min=window,
         packages=checks,
         issues=issues or None,
+        notes=notes or None,
     )
 
 

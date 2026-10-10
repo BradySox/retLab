@@ -59,6 +59,25 @@ The DM's calls: the scripted planner runs before Take Off; it buys too; the Take
 re-plan fires only when red has no packages, so it never overwrites an AI's plan. The AI
 cancels an aircraft order with `sell/aircraft`; it has no route to cancel a ground order.
 
+## What the first live reviews changed (2026-10-10)
+
+Two reviews of the Kola campaign through the link found the link itself misreporting:
+
+- `/packages` listed each flight's planned loadout as CLSIDs. With
+  `restrict_weapons_by_date` on, the mission builder swaps or drops weapons at
+  generation, so a 1985 Su-24 read as carrying Kh-31A and Kh-59M and flew with Kh-29L and
+  Kh-29T. `views._flight_loadout` now applies `degrade_for_date` exactly as
+  `FlightGroupConfigurator.setup_payload` does, and reports weapon names.
+- `/validate` called the scripted planner's own plan not OK. A later package lengthens a
+  field's runway queue (§104), which pushes an earlier package's start a minute or two
+  before the turn clock; the early mission start covers that, and the check did not know.
+  `planner.tot_shortfall` now allows `EARLY_START_CAP`, and the package is a note.
+- A TOT after `desired_player_mission_duration` was a failure. On a map with 300 NM legs
+  every scripted raid is late by that measure. It is a note (DM call).
+- `/prev_turns` served the campaign log as written for blue. `views.name_the_sides`
+  rewrites "we", "our", "ally", "enemy" and "OPFOR" to Blue and Red. "friendly" is left:
+  `ControlPoint.capture_equipment` uses it for whichever side owns the base.
+
 ## Source and licence
 
 Ported from `juanjux/dcs-escalation` (`game/agent/`, `game/server/retributionai/`), LGPL-3
