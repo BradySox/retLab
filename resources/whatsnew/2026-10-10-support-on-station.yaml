@@ -1,0 +1,12 @@
+date: 2026-10-10
+title: AWACS and tankers are on station from mission start
+change: >-
+  With the Support aircraft (AWACS/tankers) start in the air setting
+  ticked, AI AWACS and theater tankers on both sides now spawn on their
+  track. Before, they spawned over their home field and flew out, which
+  on a large map took half an hour. A track that would sit inside a
+  neutral country also slides along its own length until it is clear of
+  the border.
+watch: >-
+  At mission start the AWACS and the theater tanker are already at their
+  track on the F10 map, and neither track crosses a neutral border.

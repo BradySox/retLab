@@ -1,0 +1,1 @@
+* **[Mission Generation]** With "Support aircraft (AWACS/tankers) start in the air" on, AI AWACS and theater tankers spawn on their track and are on station at mission start, instead of spawning over their home field and flying out.

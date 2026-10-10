@@ -92,7 +92,8 @@ def _airspace_closed_to(coalition: Any) -> list[Any]:
     game = getattr(coalition, "game", None)
     theater = getattr(game, "theater", None)
     zones = getattr(theater, "neutral_border_zones", None)
-    if not zones or not getattr(game.settings, "neutral_border_defense", False):
+    settings = getattr(game, "settings", None)
+    if not zones or not getattr(settings, "neutral_border_defense", False):
         return []
     from shapely.geometry import Polygon
 
