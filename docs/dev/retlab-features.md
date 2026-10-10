@@ -11459,8 +11459,9 @@ has the scoring table.
 ## §109 — Outside AI reads red's turn
 
 A REST API under `/retribution-ai/*` on the map server, for an AI on the same PC (Claude
-Code, for example). It reads red's turn and reports what looks wrong. With Developer tools
-> Outside AI plans red ticked, it also plans red: packages, TOTs, front stances, buying and
+Code, for example). It reads red's turn and reports what looks wrong. With the setting
+Outside AI plans red ticked (Campaign Management > HQ automation, so it is also on the new
+game wizard's Campaign options page), it also plans red: packages, TOTs, front stances, buying and
 selling, with notes saved in the campaign. Developer tools > Copy AI connect link copies
 the URL with its token. Ported from juanjux/dcs-escalation (LGPL-3). Stage 1 built
 2026-10-09 (row B201), stage 2a the same day (row B204); 2b (loadouts, waypoints,
@@ -11475,11 +11476,13 @@ call that reversed the 2026-08-24 "no LLM" rule, the stages and what was left ou
   briefings in `resources/agent/`.
 - `game/commander/missionproposals.py`, `packagebuilder.py`, `game/squadrons/airwing.py`:
   `preferred_squadron`.
-- `game/game.py` (`opfor_ai_enabled`, `opfor_ai_notes`), `qt_ui/widgets/QTopPanel.py`
-  (Take Off fallback).
+- `Settings.outside_ai_plans_red` (`game/settings/fields/campaignmanagement.py`; it was
+  `Game.opfor_ai_enabled`, a Developer tools toggle, until 2026-10-10, and
+  `Game.__setstate__` carries an old save's choice over), `game/game.py`
+  (`opfor_ai_notes`), `qt_ui/widgets/QTopPanel.py` (Take Off fallback).
 - `game/server/retributionai/routes.py`; mounted in `game/server/app.py`.
 - `game/server/security.py`: token by `X-API-Key` header or `?token=`.
-- `qt_ui/windows/QLiberationWindow.py`: `copy_ai_connect_link`, `set_opfor_ai`.
+- `qt_ui/windows/QLiberationWindow.py`: `copy_ai_connect_link`.
 - `tests/agent/test_read_api.py`, `tests/agent/test_write_api.py`.
 
 ### Constraints

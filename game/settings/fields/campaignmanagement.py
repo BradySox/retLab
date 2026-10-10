@@ -551,6 +551,21 @@ class CampaignManagementSettings:
         HQ_AUTOMATION_SECTION,
         default=True,
     )
+    # §109. Was Game.opfor_ai_enabled (a Developer tools toggle) until 2026-10-10.
+    outside_ai_plans_red: bool = boolean_option(
+        "Outside AI plans red",
+        CAMPAIGN_MANAGEMENT_PAGE,
+        HQ_AUTOMATION_SECTION,
+        default=False,
+        detail=(
+            "Lets the AI on your AI connect link (Developer tools > Copy AI connect "
+            "link) change red's missions and purchases. The game's own planner still "
+            "plans and buys for red at the start of every turn; the AI keeps that "
+            "plan, changes it or clears it. If red has no packages at Take Off, the "
+            "game's planner plans red's missions again. Off, the AI can only read "
+            "red's turn and report."
+        ),
+    )
     sp_pilot_mode: bool = boolean_option(
         "SP Pilot Mode (fly the next turn without planning it)",
         CAMPAIGN_MANAGEMENT_PAGE,

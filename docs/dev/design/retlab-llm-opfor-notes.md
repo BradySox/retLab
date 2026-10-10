@@ -24,7 +24,7 @@ tool, not evidence that the HTN plans badly.
 | Stage | What | Status |
 |---|---|---|
 | 1 | Read API under `/retribution-ai/*` (REST), the `/start` and `/howtoplay` briefings, Developer tools > Copy AI connect link | Built 2026-10-09 |
-| 2a | Packages (create, evaluate, delete, TOT), front stances, buying and selling aircraft and ground units, the AI's notes saved with the campaign, Developer tools > Outside AI plans red, the Take Off fallback | Built 2026-10-09 |
+| 2a | Packages (create, evaluate, delete, TOT), front stances, buying and selling aircraft and ground units, the AI's notes saved with the campaign, the Outside AI plans red switch, the Take Off fallback | Built 2026-10-09 |
 | 2b | Loadouts, waypoint edits, ground transfers, ship moves, repairs, squadron moves | Agreed, not started |
 | 3 | MCP at `/mcp` for the claude.ai app; the toolbar activity icon and the Take Off lock while the AI works | Agreed, not started |
 
@@ -33,6 +33,11 @@ never blue's ATO; the old planner fills in if the AI does not finish. For stage 
 2a/2b; the switch is a Developer tools toggle, not a setting; with it on the AI does all
 of red's buying (Juan keeps red's auto-buying running); the AI gets notes saved with the
 campaign.
+
+**Changed 2026-10-10 (DM call): the switch is a setting.** `outside_ai_plans_red` sits on
+Campaign Management > HQ automation, so the new game wizard's Campaign options page and
+the Settings window both show it. The Developer tools tick box is gone; Copy AI connect
+link stays there. An old save's `Game.opfor_ai_enabled` moves into the setting on load.
 
 ## Stage 2a: who plans red
 
@@ -82,10 +87,12 @@ Cruise-missile stock is left out because reading it seeds the magazines (a write
   purchase adapters. `ProposedFlight.preferred_squadron` (read by
   `AirWing.best_squadrons_for`) is the one engine change: a named squadron, and only it,
   fills the flight; Juan found a type alone let a sister squadron take its place.
-- `game/game.py`: `opfor_ai_enabled`, `opfor_ai_notes` (saved; `__setstate__` defaults).
+- `game/settings/fields/campaignmanagement.py`: `outside_ai_plans_red`.
+  `game/game.py`: `opfor_ai_notes` (saved), and `__setstate__` moves an old save's
+  `opfor_ai_enabled` into the setting.
 - `game/coalition.py`: the `initialize_turn` branch.
-- `qt_ui/windows/QLiberationWindow.py`: Developer tools > Copy AI connect link and
-  Outside AI plans red. `qt_ui/widgets/QTopPanel.py`: the Take Off fallback.
+- `qt_ui/windows/QLiberationWindow.py`: Developer tools > Copy AI connect link.
+  `qt_ui/widgets/QTopPanel.py`: the Take Off fallback.
 - Tests: `tests/agent/test_read_api.py`, `tests/agent/test_write_api.py`.
 
 ## Constraints

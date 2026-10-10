@@ -261,10 +261,6 @@ class QLiberationWindow(QMainWindow):
         self.copyAiConnectLinkAction = QAction("Copy AI connect link", self)
         self.copyAiConnectLinkAction.triggered.connect(self.copy_ai_connect_link)
 
-        self.opforAiAction = QAction("Outside AI plans red", self)
-        self.opforAiAction.setCheckable(True)
-        self.opforAiAction.toggled.connect(self.set_opfor_ai)
-
         self.enable_game_actions(False)
 
     def enable_game_actions(self, enabled: bool):
@@ -272,10 +268,6 @@ class QLiberationWindow(QMainWindow):
         self.openStatsAction.setVisible(enabled)
         self.openNotesAction.setVisible(enabled)
         self.openCustomKneeboardsAction.setVisible(enabled)
-        self.opforAiAction.setEnabled(enabled)
-        self.opforAiAction.setChecked(
-            self.game is not None and self.game.opfor_ai_enabled
-        )
 
         # Also Disable SaveAction to prevent Keyboard Shortcut
         self.saveGameAction.setEnabled(enabled)
@@ -327,7 +319,6 @@ class QLiberationWindow(QMainWindow):
         tools_menu = self.menu.addMenu("&Developer tools")
         tools_menu.addAction(self.importTemplatesAction)
         tools_menu.addAction(self.copyAiConnectLinkAction)
-        tools_menu.addAction(self.opforAiAction)
 
         help_menu = self.menu.addMenu("&Help")
         help_menu.addAction(self.openDiscordAction)
@@ -717,26 +708,10 @@ class QLiberationWindow(QMainWindow):
             "AI connect link copied",
             "Paste this link to an AI that can read web pages on this PC (Claude "
             'Code, for example), then tell it "review the turn". It reads the '
-            "enemy's turn and reports problems; it cannot change anything.\n\n"
+            "enemy's turn and reports problems. It can change red's plan only with "
+            "Settings > Campaign Management > Outside AI plans red ticked.\n\n"
             "The link works until Retribution closes.\n\n" + url,
         )
-
-    def set_opfor_ai(self, enabled: bool) -> None:
-        if self.game is None or self.game.opfor_ai_enabled == enabled:
-            return
-        self.game.opfor_ai_enabled = enabled
-        if enabled:
-            QMessageBox.information(
-                self,
-                "Outside AI plans red",
-                "The AI on your AI connect link can now change red's missions and "
-                "purchases.\n\n"
-                "The game's own planner still plans and buys for red at the start of "
-                "every turn, so red always has a plan. The AI keeps that plan, changes "
-                "it or clears it.\n\n"
-                "If red has no packages when you take off, the game's own planner "
-                "plans red's missions again.",
-            )
 
     def showLogsDialog(self):
         self.logs_dialog = QLogsWindow(self)

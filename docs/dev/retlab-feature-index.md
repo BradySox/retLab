@@ -120,6 +120,6 @@ pass checklist `§N` is unregistered, or this table drifts.
 | §106 | Package route | — | — |
 | §107 | Briefing screen picture | — | — |
 | §108 | Flight report cards | — | — |
-| §109 | Outside AI reads red's turn | — | — |
+| §109 | Outside AI reads red's turn | — | `outside_ai_plans_red` |
 | — | Skynet IADS engine | `skynetiads` | — |
 | — | Splash Damage (RetLab tuned) | `splashdamage3` | — |

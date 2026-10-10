@@ -314,7 +314,8 @@ Most of this is opt-in. Full list with toggles, defaults and known limitations:
   can read web pages on your PC (Claude Code, for example) a read-only view of red's turn:
   forces, packages, routes, the air-defense network, last turn's losses and a map picture.
   Say "review the turn" and it reports what looks wrong in red's plan. It never sees your
-  own packages. Tick **Developer tools > Outside AI plans red** and it plans red instead:
+  own packages. Tick **Outside AI plans red** (Settings > Campaign Management, or the new
+  game wizard's Campaign options page) and it plans red instead:
   packages, TOTs, front stances, buying and selling. The game still plans and buys for red
   at the start of every turn, so the AI starts from that plan and red is never empty.
   Ported from juanjux/dcs-escalation.

@@ -3,20 +3,25 @@ turn over to it."""
 
 from types import SimpleNamespace
 from typing import Any, Iterator, cast
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
+from game import Game
 from game.agent import planner, schemas, service
 from game.ato.flighttype import FlightType
 from game.coalition import Coalition
 from game.server import GameContext
+from game.settings import Settings
+from game.settings.layout import FIELD_LAYOUT
 from game.theater.player import Player
 
 
 @pytest.fixture
 def live_game() -> Iterator[Any]:
-    game = SimpleNamespace(opfor_ai_enabled=False, opfor_ai_notes={})
+    game = SimpleNamespace(
+        settings=SimpleNamespace(outside_ai_plans_red=False), opfor_ai_notes={}
+    )
     previous = getattr(GameContext, "_game_model", None)
     GameContext.set_model(cast(Any, SimpleNamespace(game=game)))
     yield game
@@ -30,14 +35,14 @@ def test_writes_are_refused_until_the_toggle_is_on(live_game: Any) -> None:
     with pytest.raises(service.WritesOffError):
         service.merge_notes({"plan": "x"})
     assert service.notes() == {}
-    live_game.opfor_ai_enabled = True
+    live_game.settings.outside_ai_plans_red = True
     assert service.merge_notes({"plan": "hold"}) == {"plan": "hold"}
     assert service.replace_notes({"a": "1"}) == {"a": "1"}
     assert service.delete_note("a") == {}
 
 
 def test_blue_writes_are_refused_even_with_the_toggle_on(live_game: Any) -> None:
-    live_game.opfor_ai_enabled = True
+    live_game.settings.outside_ai_plans_red = True
     with pytest.raises(service.SideNotAllowedError):
         service.clear_packages("blue")
     with pytest.raises(service.SideNotAllowedError):
@@ -68,7 +73,7 @@ def test_unknown_task_and_escort_are_named() -> None:
 def _coalition(player: Player, ai_on: bool) -> Any:
     fake = MagicMock()
     fake.player = player
-    fake.game.opfor_ai_enabled = ai_on
+    fake.game.settings.outside_ai_plans_red = ai_on
     return fake
 
 
@@ -100,7 +105,7 @@ def test_turn_0_buys_and_plans_no_missions_with_the_ai_on() -> None:
 
 def test_take_off_fallback_runs_only_when_the_ai_planned_nothing() -> None:
     game = MagicMock()
-    game.opfor_ai_enabled = True
+    game.settings.outside_ai_plans_red = True
     game.red.ato.packages = []
     assert service.run_fallback_if_needed(game)
     game.red.plan_missions.assert_called_once()
@@ -108,7 +113,7 @@ def test_take_off_fallback_runs_only_when_the_ai_planned_nothing() -> None:
     game.red.plan_missions.reset_mock()
     game.red.ato.packages = [object()]
     assert not service.run_fallback_if_needed(game)
-    game.opfor_ai_enabled = False
+    game.settings.outside_ai_plans_red = False
     game.red.ato.packages = []
     assert not service.run_fallback_if_needed(game)
     game.red.plan_missions.assert_not_called()
@@ -137,3 +142,27 @@ def test_package_spec_defaults() -> None:
     spec = schemas.PackageSpec(target_id="x", flights=[schemas.FlightSpec(task="CAS")])
     assert spec.tot_minutes is None and not spec.ignore_range
     assert spec.flights[0].count == 2
+
+
+@pytest.mark.parametrize("ticked", [True, False])
+def test_a_save_from_the_developer_tools_toggle_keeps_its_choice(ticked: bool) -> None:
+    # Until 2026-10-10 the switch was Game.opfor_ai_enabled, not a setting.
+    game = Game.__new__(Game)
+    state: dict[str, Any] = {
+        "opfor_ai_enabled": ticked,
+        "settings": Settings(),
+        # Present so __setstate__ does not walk a theater this bare instance lacks.
+        "laser_code_registry": object(),
+    }
+    with patch.object(Game, "on_load"):
+        game.__setstate__(state)
+    assert game.settings.outside_ai_plans_red is ticked
+    assert not hasattr(game, "opfor_ai_enabled")
+
+
+def test_the_switch_is_a_setting_the_new_game_wizard_shows() -> None:
+    assert FIELD_LAYOUT["outside_ai_plans_red"] == (
+        "Campaign Management",
+        "HQ automation",
+    )
+    assert Settings().outside_ai_plans_red is False

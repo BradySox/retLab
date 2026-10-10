@@ -906,6 +906,7 @@ FEATURES: tuple[Feature, ...] = (
         "llm_opfor_reader",
         "Outside AI reads red's turn",
         109,
+        settings_fields=("outside_ai_plans_red",),
     ),
     # Always-on engine plugins — major RetLab machinery documented in design notes
     # rather than a numbered "Features at a Glance" entry.
