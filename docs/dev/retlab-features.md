@@ -8416,6 +8416,15 @@ objectives across the theatre — an Afghanistan turn-2 ATO fragged Bagram→Kan
 269 NM, 177 NM behind the nearest friendly base. Helicopters could never reach that far,
 so the unbounded list only became a problem under §76.
 
+**The cap must not empty the ground war's table (fixed 2026-10-10).** `TheaterState`
+builds `enemy_battle_positions` from the same list, and `BreakthroughAttack` looks up its
+own front's enemy base in it. A front over 100 NM long (Bardufoss to Alta, 116 NM) had no
+entry, so the side with 2 to 1 on the ground there raised `KeyError` and the turn could
+not be planned. Nine bundled campaigns start with such a front.
+`battle_position_bases` now adds every front line's enemy base; `vulnerable_control_points`
+still reads only the capped list, so air assault is unchanged.
+`tests/commander/test_battle_position_bases.py`.
+
 **Still open:** the capture did not commit to the campaign. `state.json` carried
 `…||2||FOB Nawa` and replaying it through `Debriefing.base_capture_events()` returns the
 correct event, but the live `commit_captures` ran empty — apparently against a stale
