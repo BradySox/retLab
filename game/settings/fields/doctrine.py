@@ -113,7 +113,7 @@ class DoctrineSettings:
         section=GENERAL_SECTION,
         default=timedelta(minutes=60),
         min=30,
-        max=150,
+        max=300,
         detail=(
             "Also determines how many tanker flights are planned: mission duration "
             "divided by desired on-station time."

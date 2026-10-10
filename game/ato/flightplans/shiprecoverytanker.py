@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Type
+from datetime import timedelta
+from typing import Any, Type
 
 from game.ato.flightplans.ibuilder import IBuilder
 from game.ato.flightplans.waypointbuilder import WaypointBuilder
@@ -8,6 +9,15 @@ from .patrolling import PatrollingLayout
 from .refuelingflightplan import RefuelingFlightPlan
 from .. import FlightWaypoint
 from ...utils import knots
+
+#: The setting's limit went from 150 to 300 minutes for theater tankers
+#: (2026-10-10). The recovery station sits 20 kt times the minutes from the boat,
+#: so the old limit still bounds it at 50 NM.
+RECOVERY_STATION_TIME_CAP = timedelta(minutes=150)
+
+
+def recovery_station_time(settings: Any) -> timedelta:
+    return min(settings.desired_tanker_on_station_time, RECOVERY_STATION_TIME_CAP)
 
 
 class RecoveryTankerFlightPlan(RefuelingFlightPlan):
@@ -28,7 +38,7 @@ class Builder(IBuilder[RecoveryTankerFlightPlan, PatrollingLayout]):
         builder = WaypointBuilder(self.flight)
         altitude = builder.get_patrol_altitude
 
-        station_time = self.coalition.game.settings.desired_tanker_on_station_time
+        station_time = recovery_station_time(self.coalition.game.settings)
         time_to_landing = station_time.total_seconds()
         hdg = (self.coalition.game.conditions.weather.wind.at_0m.direction + 180) % 360
         recovery_ship = self.package.target.position.point_from_heading(
