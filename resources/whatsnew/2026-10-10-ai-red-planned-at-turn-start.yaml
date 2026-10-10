@@ -1,0 +1,11 @@
+date: 2026-10-10
+title: Red always has a plan with Outside AI plans red ticked
+change: >-
+  With Developer tools > Outside AI plans red ticked, the game's own planner
+  still plans and buys for red at the start of every turn and on every
+  re-roll. The AI starts from that plan and keeps it, changes it or clears
+  it. Before, red sat empty until Take Off, a Time & Weather re-roll wiped
+  red's plan, and red's budget went unspent.
+watch: >-
+  Tick the box and pass a turn: red's packages are on the map before any AI
+  has connected, and red's budget is spent.

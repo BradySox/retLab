@@ -394,7 +394,7 @@ class QTopPanel(QFrame):
         if run_fallback_if_needed(self.game):
             self.game.message(
                 "Red planned by the game",
-                "The outside AI planned no red missions, so the game's own planner did.",
+                "Red had no missions at Take Off, so the game's own planner planned them.",
             )
 
         if self.sim_controller.started:

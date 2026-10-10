@@ -729,11 +729,13 @@ class QLiberationWindow(QMainWindow):
             QMessageBox.information(
                 self,
                 "Outside AI plans red",
-                "From next turn red's missions and purchases are left to the AI on "
-                "your AI connect link. This turn's red plan stays until the AI "
-                "changes it.\n\n"
+                "The AI on your AI connect link can now change red's missions and "
+                "purchases.\n\n"
+                "The game's own planner still plans and buys for red at the start of "
+                "every turn, so red always has a plan. The AI keeps that plan, changes "
+                "it or clears it.\n\n"
                 "If red has no packages when you take off, the game's own planner "
-                "plans red's missions. Red's automatic repairs stop while this is on.",
+                "plans red's missions again.",
             )
 
     def showLogsDialog(self):

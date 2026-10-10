@@ -73,20 +73,29 @@ def _coalition(player: Player, ai_on: bool) -> Any:
 
 
 @pytest.mark.parametrize(
-    "player, ai_on, planned",
+    "player, ai_on",
     [
-        (Player.RED, False, True),
-        (Player.RED, True, False),
-        (Player.BLUE, True, True),
+        (Player.RED, False),
+        (Player.RED, True),
+        (Player.BLUE, True),
     ],
 )
-def test_the_scripted_planner_stands_down_for_red_only(
-    player: Player, ai_on: bool, planned: bool
+def test_the_scripted_planner_plans_and_buys_at_turn_start_with_the_ai_on(
+    player: Player, ai_on: bool
 ) -> None:
+    # A turn start or a mid-turn re-plan clears the ATO and refunds the orders, so
+    # standing the planner down for the AI left red with no plan and no purchases.
     coalition = _coalition(player, ai_on)
     Coalition.initialize_turn(coalition, is_turn_0=False, events=MagicMock())
-    assert coalition.plan_missions.called is planned
-    assert coalition.plan_procurement.called is planned
+    coalition.plan_missions.assert_called_once()
+    coalition.plan_procurement.assert_called_once()
+
+
+def test_turn_0_buys_and_plans_no_missions_with_the_ai_on() -> None:
+    coalition = _coalition(Player.RED, ai_on=True)
+    Coalition.initialize_turn(coalition, is_turn_0=True, events=MagicMock())
+    coalition.plan_missions.assert_not_called()
+    coalition.plan_procurement.assert_called_once()
 
 
 def test_take_off_fallback_runs_only_when_the_ai_planned_nothing() -> None:

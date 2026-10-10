@@ -37,15 +37,22 @@ campaign.
 ## Stage 2a: who plans red
 
 - **Toggle off** (default): nothing changes. Writes answer 403.
-- **Toggle on**: `Coalition.initialize_turn` skips red's `plan_missions` and
-  `plan_procurement`. Red's ATO starts each turn empty and its budget is the AI's.
-  `plan_procurement` also carried red's runway and SAM repairs (§68), so those stop until
-  2b gives the AI a repair action.
+- **Toggle on**: the write routes open. `Coalition.initialize_turn` plans and buys for red
+  exactly as with the toggle off, so the AI starts each turn from the scripted plan and
+  keeps it, changes it or clears it. Red's runway and SAM repairs (§68) ride on
+  `plan_procurement` and keep running.
 - **Take Off** (`QTopPanel.launch_mission`): when the toggle is on and red has no
-  packages, `service.run_fallback_if_needed` runs `red.plan_missions` and logs a line. Only
-  missions: unspent money carries over.
-- Any mid-turn `Game.initialize_turn(for_red=True)` clears red's ATO, the AI's included,
-  as it clears the scripted one.
+  packages, `service.run_fallback_if_needed` runs `red.plan_missions` and logs a line.
+- Any mid-turn `Game.initialize_turn(for_red=True)` replaces red's ATO, the AI's included,
+  with a fresh scripted plan. The briefing tells the AI to re-read `/packages`.
+
+**Changed 2026-10-10 (DM call).** As first built, the toggle stood red's `plan_missions`
+and `plan_procurement` down. On the first live use (Kola, turn 1) a Time & Weather re-roll
+after ticking the box cleared red's 7 scripted packages and refunded its orders with
+nothing planned in their place; a turn later red still had no packages and 610 unspent.
+The DM's calls: the scripted planner runs before Take Off; it buys too; the Take Off
+re-plan fires only when red has no packages, so it never overwrites an AI's plan. The AI
+cancels an aircraft order with `sell/aircraft`; it has no route to cancel a ground order.
 
 ## Source and licence
 

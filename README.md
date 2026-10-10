@@ -315,8 +315,9 @@ Most of this is opt-in. Full list with toggles, defaults and known limitations:
   forces, packages, routes, the air-defense network, last turn's losses and a map picture.
   Say "review the turn" and it reports what looks wrong in red's plan. It never sees your
   own packages. Tick **Developer tools > Outside AI plans red** and it plans red instead:
-  packages, TOTs, front stances, buying and selling. If it plans nothing, the game plans
-  red's missions at Take Off. Ported from juanjux/dcs-escalation.
+  packages, TOTs, front stances, buying and selling. The game still plans and buys for red
+  at the start of every turn, so the AI starts from that plan and red is never empty.
+  Ported from juanjux/dcs-escalation.
 - **Target priorities.** Tell the auto-planner where to push and what to chase. Mark an enemy
   base emphasized, deprioritized or ignored from its base dialog; mark a single target the
   same way from its own dialog; and set a priority per kind of target — air defense,

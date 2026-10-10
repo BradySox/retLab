@@ -302,13 +302,11 @@ class Coalition:
         with logged_duration("Transport planning"):
             self.transfers.plan_transports(self.game.conditions.start_time, events)
 
-        # §109: with the outside AI on, red's missions and buying are its job; the
-        # scripted planner flies red at Take Off only if the AI planned nothing.
-        ai_plans = self.player.is_red and self.game.opfor_ai_enabled
-        if not is_turn_0 and not ai_plans:
+        # §109: red is planned and buys here even with the outside AI on, so a turn
+        # (or a mid-turn re-plan) never leaves red empty; the AI edits this plan.
+        if not is_turn_0:
             self.plan_missions(self.game.conditions.start_time)
-        if not ai_plans:
-            self.plan_procurement()
+        self.plan_procurement()
 
     def refund_outstanding_orders(self) -> None:
         # TODO: Split orders between air and ground units.

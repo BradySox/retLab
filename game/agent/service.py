@@ -252,8 +252,9 @@ def delete_note(key: str) -> dict[str, str]:
 
 
 def run_fallback_if_needed(game: Game) -> bool:
-    """At Take Off: if the AI was meant to plan red and planned nothing, the scripted
-    planner flies red's missions so the turn is never empty. True when it ran."""
+    """At Take Off: if the AI cleared red's plan and planned nothing in its place, the
+    scripted planner flies red's missions so the turn is never empty. True when it ran.
+    """
     if not game.opfor_ai_enabled or game.red.ato.packages:
         return False
     game.red.plan_missions(game.conditions.start_time)

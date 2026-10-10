@@ -115,9 +115,14 @@ are yours. Red is still **{RED_FACTION}**: you fly its squadrons from its bases,
 for everything out of `economy.budget`. You can do what a player can do on their own
 side, and nothing more: no free aircraft, no moving bases, no reading blue's packages.
 
-At the start of a turn red's ATO is empty unless the human switched you on mid-turn; then
-it holds the scripted planner's plan, which you may keep, change or clear. If red has no
-packages when the human takes off, the scripted planner plans red's missions.
+At the start of every turn the scripted planner plans red's missions and spends red's
+budget, exactly as it does with you switched off. That plan is your starting point: keep
+it, change it, or clear it with `DELETE /retribution-ai/packages` and plan your own.
+
+The human can re-plan a turn part-way through (new weather, a new stance, a purchase at a
+base). That replaces red's packages with a fresh scripted plan, yours included, so read
+`GET /retribution-ai/packages` again before you write. If red has no packages when the
+human takes off, the scripted planner plans red's missions once more.
 
 ### Actions
 
@@ -164,9 +169,9 @@ Every write answers with `ok`, and `detail` or `error`. One bad item never sinks
   and `DELETE /retribution-ai/notes/{key}`: your notes, saved with the campaign. Keep
   your plan and what you learned about the human there; nothing else carries over.
 
-Not yet available: loadouts, waypoint edits, moving ground units or ships, repairs and
-moving squadrons. The game does none of these for red while you command it, so runways
-and SAM sites red loses stay down. Tell the human if that starts to matter.
+Not yet available to you: loadouts, waypoint edits, moving ground units or ships, repairs
+and moving squadrons. The scripted planner still repairs and buys for red at the start of
+every turn, so none of these stops while you command.
 
 ### Planning well
 
@@ -175,5 +180,7 @@ and SAM sites red loses stay down. Tell the human if that starts to matter.
 - Keep red's airspace covered: a base with no BARCAP over it is open to blue's strikes.
 - Strike where a SAM ring covers the route only with SEAD or DEAD in the package.
 - Spend `idle_flyable` on purpose. Aircraft held back are fine; aircraft forgotten are not.
-- Spend the budget every turn or say in your notes why you are saving it.
+- The scripted planner has already spent most of the budget on orders that arrive next
+  turn. `sell/aircraft` cancels an aircraft order for its money back if you would buy
+  something else; a ground order cannot be cancelled here.
 - When you are done, tell the human in one or two lines what you planned and why.
