@@ -1,0 +1,1 @@
+* **[Campaigns]** Kola - Northern Flank 1985 sets the airbase threat range to 300 NM, so both sides fly BARCAP over their forward fields. At the stock 100 NM neither side patrolled a land base, because the nearest opposed fields are 116 NM apart. New games only.

@@ -53,6 +53,10 @@ settings:
   # is a cap on each airframe's own range, so this opens the deep targets to the
   # bombers without sending an F-5 there.
   max_mission_range_planes: 400
+  # A base is patrolled only when an enemy field is inside this range. The nearest
+  # opposed pair, Alta and Bardufoss, is 116 NM apart, so the stock 100 NM planned
+  # no land-base patrol for either side. 300 covers every forward field.
+  airbase_threat_range: 300
   plugins:
     skynetiads: true
     neutralborder: true
