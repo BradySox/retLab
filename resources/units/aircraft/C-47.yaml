@@ -15,3 +15,6 @@ variants:
 tasks:
   Air Assault: 20
   Transport: 90
+
+# No air-to-air refueling in DCS.
+air_refuel_type: none

@@ -5,3 +5,6 @@ tasks:
   BAI: 20
   CAS: 20
   OCA/Aircraft: 20
+
+# No air-to-air refueling in DCS.
+air_refuel_type: none

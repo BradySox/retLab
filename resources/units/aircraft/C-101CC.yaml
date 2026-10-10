@@ -29,3 +29,6 @@ tasks:
   OCA/Runway: 170
   Strike: 170
   TARCAP: 130
+
+# No air-to-air refueling in DCS.
+air_refuel_type: none

@@ -31,5 +31,5 @@ tasks:
   Strike: 290
   TARCAP: 310
 
-# Air-to-air refueling method (receiver).
-air_refuel_type: probe
+# No air-to-air refueling in DCS.
+air_refuel_type: none

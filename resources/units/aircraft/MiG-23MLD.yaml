@@ -27,3 +27,6 @@ tasks:
   Fighter sweep: 360
   Strike: 130
   TARCAP: 360
+
+# No air-to-air refueling in DCS.
+air_refuel_type: none

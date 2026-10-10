@@ -24,3 +24,6 @@ tasks:
   Strike: 480
 secondary_tasks:
   - DEAD
+
+# No air-to-air refueling in DCS.
+air_refuel_type: none

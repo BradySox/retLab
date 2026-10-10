@@ -15,6 +15,8 @@ from game.utils import Distance, Speed, meters, nautical_miles
 from .uizonedisplay import UiZone, UiZoneDisplay
 
 if TYPE_CHECKING:
+    from dcs import Point
+
     from ..flightwaypoint import FlightWaypoint
     from .flightplan import FlightPlan
 
@@ -77,6 +79,70 @@ def step_back_from_threat(
     both cases walked a threatened anchor's extra orbits toward the zone.
     """
     return orbit_distance + step if threatened else orbit_distance - step
+
+
+#: Room a support track keeps from a neutral border. The turn at each end is
+#: flown outside the two points: an E-3A flew 7.5 NM off its leg (test 36).
+NEUTRAL_BORDER_MARGIN = nautical_miles(8)
+NEUTRAL_SLIDE_LIMIT = nautical_miles(60)
+
+
+def _airspace_closed_to(coalition: Any) -> list[Any]:
+    """Borders of the countries that would intercept this side (§98)."""
+    game = getattr(coalition, "game", None)
+    theater = getattr(game, "theater", None)
+    zones = getattr(theater, "neutral_border_zones", None)
+    if not zones or not getattr(game.settings, "neutral_border_defense", False):
+        return []
+    from shapely.geometry import Polygon
+
+    is_blue = coalition.player.is_blue
+    return [
+        Polygon(zone.border).buffer(0)
+        for zone in zones
+        if len(zone.border) >= 3 and zone.enforces_against(theater, is_blue)
+    ]
+
+
+def slide_clear_of_neutral_airspace(
+    start: Point, end: Point, coalition: Any, threat_zones: Any
+) -> tuple[Point, Point]:
+    """Slide a support track along its own length, out of neutral airspace.
+
+    The smallest move either way that clears it, never into a threat zone the
+    track was clear of. Along the track rather than back toward the anchor: on
+    Kola the line home runs through Finland, so back needed 110-120 NM where
+    along needed 5 and 22 (2026-10-10). Unchanged when nothing in reach is clear.
+    """
+    closed = _airspace_closed_to(coalition)
+    if not closed:
+        return start, end
+    from shapely.geometry import LineString
+
+    def clear(a: Point, b: Point) -> bool:
+        corridor = LineString([(a.x, a.y), (b.x, b.y)]).buffer(
+            NEUTRAL_BORDER_MARGIN.meters
+        )
+        return not any(corridor.intersects(country) for country in closed)
+
+    if clear(start, end):
+        return start, end
+    was_threatened = threat_zones.threatened(start) or threat_zones.threatened(end)
+    along = end.heading_between_point(start)
+    step = nautical_miles(1).meters
+    for count in range(1, int(NEUTRAL_SLIDE_LIMIT.nautical_miles) + 1):
+        for direction in (1, -1):
+            move = direction * count * step
+            a = start.point_from_heading(along, move)
+            b = end.point_from_heading(along, move)
+            if not clear(a, b):
+                continue
+            if not was_threatened and (
+                threat_zones.threatened(a) or threat_zones.threatened(b)
+            ):
+                continue
+            return a, b
+    return start, end
 
 
 class PatrollingFlightPlan(StandardFlightPlan[LayoutT], UiZoneDisplay, ABC):

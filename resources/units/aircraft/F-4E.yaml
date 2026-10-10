@@ -31,3 +31,6 @@ tasks:
   SEAD Escort: 120
   Strike: 400
   TARCAP: 410
+
+# No air-to-air refueling in DCS.
+air_refuel_type: none

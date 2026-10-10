@@ -6,3 +6,6 @@ variants:
   KJ-2000: null
 tasks:
   AEW&C: 0
+
+# No air-to-air refueling in DCS.
+air_refuel_type: none

@@ -31,3 +31,6 @@ tasks:
   DEAD: 113
   Escort: 90
   OCA/Aircraft: 430
+
+# No air-to-air refueling in DCS.
+air_refuel_type: none

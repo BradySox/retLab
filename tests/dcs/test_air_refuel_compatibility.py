@@ -7,13 +7,18 @@ never regresses campaigns whose aircraft data hasn't been classified yet.
 
 from types import SimpleNamespace
 
-from game.dcs.aircrafttype import AircraftType, AirRefuelType
+import pytest
+
+from game import persistency
+from game.dcs.aircrafttype import NO_AIR_REFUEL, AircraftType, AirRefuelType
 
 
 def _receiver(
-    air_refuel_type: object = None, helicopter: bool = False
+    air_refuel_type: object = None, helicopter: bool = False, cannot: bool = False
 ) -> SimpleNamespace:
-    return SimpleNamespace(air_refuel_type=air_refuel_type, helicopter=helicopter)
+    return SimpleNamespace(
+        air_refuel_type=air_refuel_type, helicopter=helicopter, cannot_air_refuel=cannot
+    )
 
 
 def _tanker(
@@ -65,3 +70,54 @@ def test_helicopter_needs_a_slow_capable_tanker() -> None:
     assert _can_refuel(
         helo, _tanker(frozenset({AirRefuelType.PROBE}), helicopters=True)
     )
+
+
+def test_a_receiver_that_cannot_refuel_takes_no_tanker() -> None:
+    # Unset used to mean "takes any tanker": a Su-25 was routed to an IL-78 track.
+    none = _receiver(cannot=True)
+    assert not _can_refuel(none, _tanker(frozenset()))
+    assert not _can_refuel(none, _tanker(frozenset({AirRefuelType.PROBE})))
+    assert not _can_refuel(
+        none, _tanker(frozenset({AirRefuelType.BOOM, AirRefuelType.PROBE}))
+    )
+
+
+def test_the_none_tag_is_not_a_refuel_method() -> None:
+    # A method would make the planner look for a tanker that dispenses it.
+    assert AirRefuelType.from_data(NO_AIR_REFUEL) is None
+    assert AirRefuelType.from_data(None) is None
+    assert AirRefuelType.from_data("probe") is AirRefuelType.PROBE
+
+
+@pytest.fixture(scope="module")
+def unit_data(tmp_path_factory: pytest.TempPathFactory) -> None:
+    persistency.setup(str(tmp_path_factory.mktemp("saved_games")), False, 0)
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        "Su-25 Frogfoot",
+        "Su-17M4 Fitter-K",
+        "MiG-23MLD Flogger-K",
+        "MiG-25PD Foxbat-E",
+        "Su-27 Flanker-B",
+        "Tu-22M3 Backfire-C",
+    ],
+)
+def test_airframes_dcs_gives_no_probe_take_no_tanker(
+    unit_data: None, name: str
+) -> None:
+    # DCS's own unit data carries no "Refuelable" attribute for these.
+    aircraft = AircraftType.named(name)
+    assert aircraft.cannot_air_refuel
+    assert aircraft.air_refuel_type is None
+    assert not aircraft.can_refuel_from(AircraftType.named("IL-78M"))
+    assert not aircraft.can_refuel_from(AircraftType.named("KC-135 Stratotanker"))
+
+
+@pytest.mark.parametrize("name", ["Su-24M Fencer-D", "MiG-31 Foxhound"])
+def test_probe_airframes_still_take_the_il78(unit_data: None, name: str) -> None:
+    aircraft = AircraftType.named(name)
+    assert not aircraft.cannot_air_refuel
+    assert aircraft.can_refuel_from(AircraftType.named("IL-78M"))

@@ -33,3 +33,6 @@ tasks:
   CAS: 210
   OCA/Aircraft: 210
   Transport: 30
+
+# No air-to-air refueling in DCS.
+air_refuel_type: none

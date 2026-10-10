@@ -9,6 +9,7 @@ from game.ato.flightplans.ibuilder import IBuilder
 from game.ato.flightplans.patrolling import (
     PatrollingFlightPlan,
     PatrollingLayout,
+    slide_clear_of_neutral_airspace,
     step_back_from_threat,
     support_spawns_on_station,
 )
@@ -139,6 +140,9 @@ class Builder(IBuilder[AewcFlightPlan, PatrollingLayout]):
 
         racetrack_end = racetrack_center.point_from_heading(
             orbit_heading.left.degrees, racetrack_half_distance
+        )
+        racetrack_start, racetrack_end = slide_clear_of_neutral_airspace(
+            racetrack_start, racetrack_end, self.coalition, self.threat_zones
         )
 
         builder = WaypointBuilder(self.flight)
