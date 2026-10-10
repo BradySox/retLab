@@ -1,0 +1,10 @@
+date: 2026-10-10
+title: CAP covers the front fields first
+change: >-
+  When a side has fewer fighters than bases to cover, CAP now goes to
+  its carriers first and then to the land bases nearest an enemy base.
+  Before, bases were covered in the order the campaign file lists them,
+  which could put CAP 200 NM behind the front and none over it.
+watch: >-
+  On the map, red's CAP stations sit over its front fields. Germany -
+  Crossing the Rubicon shows it on turn 1: CAP over Fulda and Haina.

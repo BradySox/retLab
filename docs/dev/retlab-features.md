@@ -1896,6 +1896,16 @@ sailing together therefore drew two stacks over nearly one point (DM report, 202
 carrier is within `LHA_CARRIER_CAP_COVER` (80 NM, DM call 2026-10-08; first set at 25 NM). A lone LHA keeps its BARCAP; the LHA's Harriers are
 untouched and can still be picked for the carrier's CAP. Tests: `tests/commander/test_lha_barcap_cover.py`. Row B188.
 
+### BARCAP stations fill nearest the enemy first (2026-10-10)
+
+Upstream fills `barcaps_needed` in campaign-file order and stops when the fighters run out. With a long list of
+threatened bases (Airbase threat range above the stock 100 NM) the front fields could get nothing: Crossing the
+Rubicon flew CAP 214 and 271 NM behind the front and none over Haina or Fulda, and across the 76 bundled
+campaigns 17 of 53 put no CAP over any front base (read 2026-10-10, DM call the same day).
+`barcap_order` in `game/commander/theaterstate.py` puts carriers and LHAs first, then land bases nearest an enemy
+base first. The number of stations and rounds is unchanged, and `trim_rounds_for_escort_reserve` now thins the
+farthest base first. Tests: `tests/commander/test_barcap_order.py`.
+
 ## 7. Auto-hide mobile SAMs on MFD
 
 - Task-level (`game/armedforces/forcegroup.py`): `hide_on_mfd` field,
