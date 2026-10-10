@@ -20,6 +20,7 @@ from game.theater import (
     ControlPoint,
     FrontLine,
     MissionTarget,
+    OffMapSpawn,
     Player,
 )
 from game.squadrons.downedpilot import DownedPilot
@@ -93,6 +94,27 @@ def battle_position_bases(
         if base not in bases:
             bases.append(base)
     return bases
+
+
+def barcap_order(
+    bases: Iterable[ControlPoint], enemy_bases: Iterable[ControlPoint]
+) -> list[ControlPoint]:
+    """BARCAP stations in the order the planner fills them.
+
+    Carriers and LHAs first, then land bases nearest an enemy base first. The
+    planner fills stations until the fighters run out, and in campaign-file
+    order that put CAP 214 and 271 NM behind the front with none over the front
+    fields (Crossing the Rubicon, 2026-10-10).
+    """
+    enemies = list(enemy_bases)
+
+    def rank(base: ControlPoint) -> tuple[int, float]:
+        if base.is_fleet:
+            return 0, 0.0
+        return 1, min((base.distance_to(enemy) for enemy in enemies), default=0.0)
+
+    # dict.fromkeys: vulnerable_control_points yields a base once per threat.
+    return sorted(dict.fromkeys(bases), key=rank)
 
 
 def trim_rounds_for_escort_reserve(
@@ -313,9 +335,14 @@ class TheaterState(WorldState["TheaterState"]):
         enemy_ships = list(finder.enemy_ships())
 
         friendly_cps = list(finder.friendly_control_points())
+        enemy_bases = [
+            cp
+            for cp in finder.enemy_control_points()
+            if not isinstance(cp, OffMapSpawn)
+        ]
         barcaps_needed = {
             cp: 2 * barcap_rounds if cp.is_fleet else barcap_rounds
-            for cp in finder.vulnerable_control_points()
+            for cp in barcap_order(finder.vulnerable_control_points(), enemy_bases)
             if not lha_covered_by_carrier(cp, friendly_cps)
         }
         # Strike-escort reserve (Doctrine.strike_escort_reserve): on fighter-poor
