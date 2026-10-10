@@ -3,7 +3,7 @@ from __future__ import annotations
 import dataclasses
 import itertools
 import math
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional, TYPE_CHECKING, TypeVar, Union, Dict
@@ -73,6 +73,26 @@ def lha_covered_by_carrier(cp: ControlPoint, friendly: list[ControlPoint]) -> bo
         other.is_carrier and cp.distance_to(other) <= LHA_CARRIER_CAP_COVER.meters
         for other in friendly
     )
+
+
+def battle_position_bases(
+    air_assault_points: Iterable[ControlPoint],
+    front_lines: Iterable[FrontLine],
+    player: Player,
+) -> list[ControlPoint]:
+    """The enemy bases the planner keeps battle positions for.
+
+    The air-assault objectives, plus the enemy base of every front line.
+    BreakthroughAttack looks its own front's base up, and air_assault_targets()
+    drops a base more than 100 NM from ours: on a 116 NM front (Bardufoss to
+    Alta) that lookup raised KeyError and the turn could not be planned.
+    """
+    bases = list(air_assault_points)
+    for front_line in front_lines:
+        base = front_line.control_point_hostile_to(player)
+        if base not in bases:
+            bases.append(base)
+    return bases
 
 
 def trim_rounds_for_escort_reserve(
@@ -274,13 +294,17 @@ class TheaterState(WorldState["TheaterState"]):
 
         battle_postitions: Dict[ControlPoint, BattlePositions] = {
             cp: BattlePositions.for_control_point(cp)
-            for cp in air_assault_capturable_points
+            for cp in battle_position_bases(
+                air_assault_capturable_points, finder.front_lines(), player
+            )
         }
 
+        # Air assault keeps its reach limit: a front-line base added above only
+        # for the ground war is not an air-assault objective.
         vulnerable_control_points = [
             cp
-            for cp, bp in battle_postitions.items()
-            if not bp.blocking_capture or cp.is_fleet
+            for cp in air_assault_capturable_points
+            if not battle_postitions[cp].blocking_capture or cp.is_fleet
         ]
 
         aewc_targets = _aewc_targets(finder)

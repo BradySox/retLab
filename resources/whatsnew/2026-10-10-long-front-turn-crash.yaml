@@ -1,0 +1,11 @@
+date: 2026-10-10
+title: Passing a turn no longer fails on a long front line
+change: >-
+  A front line more than 100 NM long could stop the turn from being
+  planned once one side had twice the other's ground units there. Nine
+  campaigns start with a front that long, Kola - Northern Flank 1985
+  among them.
+watch: >-
+  On Kola - Northern Flank 1985, pass turns as the Bardufoss to Alta
+  front swings either way. The next turn always opens with both sides
+  planned.

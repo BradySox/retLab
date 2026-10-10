@@ -1,0 +1,1 @@
+* **[Campaign]** Passing a turn no longer fails with a KeyError when a front line is more than 100 NM long and one side has twice the other's ground units there. Kola - Northern Flank 1985 and Operation Desert Aladeen crashed on turn 1 when blue bought no ground units.
