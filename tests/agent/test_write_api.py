@@ -1,6 +1,7 @@
 """The outside AI's write path: gated on the toggle, red only, and the engine hands red's
 turn over to it."""
 
+from datetime import datetime, timedelta
 from types import SimpleNamespace
 from typing import Any, Iterator, cast
 from unittest.mock import MagicMock, patch
@@ -166,3 +167,40 @@ def test_the_switch_is_a_setting_the_new_game_wizard_shows() -> None:
         "HQ automation",
     )
     assert Settings().outside_ai_plans_red is False
+
+
+def _package(need_min: float, support: bool = False) -> Any:
+    plan = SimpleNamespace(
+        minimum_duration_from_start_to_tot=lambda: timedelta(minutes=need_min),
+        tot_offset=timedelta(),
+    )
+    flight = SimpleNamespace(
+        flight_plan=plan, departure=SimpleNamespace(name="Severomorsk-1")
+    )
+    return SimpleNamespace(
+        flights=[flight],
+        auto_asap=support,
+        primary_task=FlightType.REFUELING if support else FlightType.DEAD,
+    )
+
+
+def test_a_start_the_early_mission_start_covers_is_not_a_shortfall() -> None:
+    # §104: a later package lengthens the runway queue, so the scripted planner's own
+    # package can need to start a minute before the turn clock.
+    now = datetime(1985, 9, 11, 1, 0)
+    tot = now + timedelta(minutes=55, seconds=51)
+    package = _package(57)
+    assert planner.tot_shortfall(package, now, tot) is None
+    assert planner.early_start_minutes(package, now, tot) == 1
+    assert planner.early_start_minutes(_package(55), now, tot) is None
+
+
+def test_a_start_past_the_early_start_cap_is_a_shortfall() -> None:
+    now = datetime(1985, 9, 11, 1, 0)
+    tot = now + timedelta(minutes=55)
+    assert planner.tot_shortfall(_package(90), now, tot) == (60, "Severomorsk-1")
+    # ASAP support launches with the mission, early or not, so it gets no lead.
+    assert planner.tot_shortfall(_package(57, support=True), now, tot) == (
+        57,
+        "Severomorsk-1",
+    )

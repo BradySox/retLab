@@ -1,0 +1,1 @@
+* **[Campaign AI]** The AI connect link reports each red flight's loadout as the mission builds it, by weapon name, with the campaign's weapon-date rule applied. Its plan check no longer fails a package the early mission start covers, and a TOT after the mission length is a note instead of a failure. The campaign log it serves names the sides Blue and Red.

@@ -14,6 +14,7 @@ Design note: docs/dev/design/retlab-llm-opfor-notes.md.
 from __future__ import annotations
 
 import math
+import re
 from datetime import timedelta
 from typing import Any, Optional, TYPE_CHECKING
 
@@ -148,8 +149,8 @@ class FlightView(BaseModel):
     clients: Optional[int] = None
     uncrewed: Optional[int] = None
     loadout: Optional[str] = None
-    weapons: Optional[dict[int, str]] = None  # pylon -> clsid
-    startup_min: Optional[int] = None  # negative = cannot make its TOT
+    weapons: Optional[dict[int, str]] = None  # pylon -> weapon name, as flown
+    startup_min: Optional[int] = None  # negative = the mission starts early for it
     tot_offset_min: Optional[float] = None  # vs the package TOT; negative = ahead
 
 
@@ -277,7 +278,7 @@ class LastTurnView(BaseModel):
 class PrevTurnsView(BaseModel):
     trend: list[TurnForcesView]
     last_turn: Optional[LastTurnView] = None
-    events: Optional[list[str]] = None  # the campaign log for the last turn
+    events: Optional[list[str]] = None  # the campaign log, sides named Blue and Red
 
 
 class SettingView(BaseModel):
@@ -940,10 +941,21 @@ def _flight_loadout(flight: Flight) -> tuple[Optional[str], Optional[dict[int, s
     if member is None:
         return None, None
     loadout = member.loadout
+    game = flight.coalition.game
+    if game.settings.restrict_weapons_by_date:
+        # The fit the mission is built with (FlightGroupConfigurator.setup_payload):
+        # the planned one lists weapons the date rule swaps out or drops.
+        try:
+            loadout = loadout.degrade_for_date(
+                flight.unit_type,
+                game.date,
+                flight.squadron.coalition.faction,
+                flight.package.target,
+            )
+        except Exception:
+            pass
     weapons = {
-        num: weapon.clsid
-        for num, weapon in loadout.pylons.items()
-        if weapon is not None
+        num: weapon.name for num, weapon in loadout.pylons.items() if weapon is not None
     }
     return loadout.name, weapons or None
 
@@ -1091,6 +1103,26 @@ def build_iads(game: Game, side: str) -> IadsView:
 
 # --- previous turns ---
 
+#: The campaign log is written for the human: "we", "our" and "ally" are blue, "enemy"
+#: and "OPFOR" are red. Red's reader gets the sides by name. "friendly" is left alone:
+#: it means whichever side the line is about (ControlPoint.capture_equipment).
+_LOG_SIDES: tuple[tuple[re.Pattern[str], str], ...] = (
+    (re.compile(r"\bWe have\b"), "Blue has"),
+    (re.compile(r"\bWe\b"), "Blue"),
+    (re.compile(r"\bOur\b"), "Blue's"),
+    (re.compile(r"\bThe enemy\b"), "Red"),
+    (re.compile(r"\b(?:Ally|Allied)\b"), "Blue"),
+    (re.compile(r"\b(?:ally|allied)\b"), "blue"),
+    (re.compile(r"\b(?:Enemy|OPFOR)\b"), "Red"),
+    (re.compile(r"\benemy\b"), "red"),
+)
+
+
+def name_the_sides(line: str) -> str:
+    for pattern, side in _LOG_SIDES:
+        line = pattern.sub(side, line)
+    return line
+
 
 def build_prev_turns(game: Game, n: int = 3) -> PrevTurnsView:
     """The force trend over the last ``n`` turns, plus the last flown turn's debrief.
@@ -1134,7 +1166,7 @@ def build_prev_turns(game: Game, n: int = 3) -> PrevTurnsView:
             sorties=getattr(sitrep, "sortie_line", None),
         )
     events = [
-        f"{info.title}: {info.text}" if info.text else info.title
+        name_the_sides(f"{info.title}: {info.text}" if info.text else info.title)
         for info in game.informations
         if info.turn >= game.turn - 1
     ][-40:]

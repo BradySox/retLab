@@ -127,3 +127,63 @@ def test_prev_turns_leaves_out_the_turn_being_planned() -> None:
     assert [t.turn for t in result.trend] == [0, 1]
     assert result.trend[-1].red.aircraft == 18
     assert result.events == ["Lost: a jet"]
+
+
+@pytest.mark.parametrize(
+    "line, expected",
+    [
+        (
+            "Enemy reinforcements: T-55A x 2 at Alta",
+            "Red reinforcements: T-55A x 2 at Alta",
+        ),
+        (
+            "Ally reinforcements: M113 x 9 at Bardufoss",
+            "Blue reinforcements: M113 x 9 at Bardufoss",
+        ),
+        ("We took control of Alta.", "Blue took control of Alta."),
+        ("The enemy took control of Evenes.", "Red took control of Evenes."),
+        (
+            "Our ground forces from A reached a stalemate with enemy forces from B",
+            "Blue's ground forces from A reached a stalemate with red forces from B",
+        ),
+        ("OPFOR has begun repairing the runway at Banak", None),
+        # Whichever side owns the base: not blue's word.
+        ("Alta is not connected to any friendly points.", None),
+    ],
+)
+def test_the_campaign_log_names_the_sides(line: str, expected: str | None) -> None:
+    if expected is None:
+        expected = line.replace("OPFOR", "Red")
+    assert views.name_the_sides(line) == expected
+
+
+def _flight_with_loadout(restrict: bool) -> Any:
+    planned = SimpleNamespace(
+        name="Anti-ship", pylons={2: SimpleNamespace(name="Kh-31A")}
+    )
+    dated = SimpleNamespace(
+        name="Anti-ship", pylons={2: SimpleNamespace(name="Kh-29L"), 5: None}
+    )
+    planned.degrade_for_date = lambda *args: dated
+    game = SimpleNamespace(
+        settings=SimpleNamespace(restrict_weapons_by_date=restrict), date=None
+    )
+    return SimpleNamespace(
+        iter_members=lambda: iter([SimpleNamespace(loadout=planned)]),
+        coalition=SimpleNamespace(game=game),
+        unit_type=None,
+        squadron=SimpleNamespace(coalition=SimpleNamespace(faction=None)),
+        package=SimpleNamespace(target=None),
+    )
+
+
+def test_a_loadout_is_the_one_the_mission_is_built_with() -> None:
+    # The date rule runs at generation, so the planned fit lists weapons never loaded.
+    assert views._flight_loadout(_flight_with_loadout(True)) == (
+        "Anti-ship",
+        {2: "Kh-29L"},
+    )
+    assert views._flight_loadout(_flight_with_loadout(False)) == (
+        "Anti-ship",
+        {2: "Kh-31A"},
+    )

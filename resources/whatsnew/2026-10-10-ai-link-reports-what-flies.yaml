@@ -1,0 +1,13 @@
+date: 2026-10-10
+title: The AI link reports what red really flies
+change: >-
+  An AI reading red's turn through the AI connect link now sees each
+  flight's weapons by name, as the mission loads them. With weapons held
+  to the campaign date it used to list missiles the jets never carried.
+  Its plan check no longer calls the game's own plan faulty: a flight the
+  mission starts a minute early for, and a raid that lands after your
+  mission length, are notes. The campaign log it reads names the sides
+  Blue and Red instead of Ally and Enemy.
+watch: >-
+  Ask the AI to review a turn in a dated campaign: the weapons it names
+  for red's strikers match what you meet in the mission.

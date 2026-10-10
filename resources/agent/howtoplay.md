@@ -28,11 +28,11 @@ Sort each one into one of four kinds, and say which:
 
 1. **Data that cannot be true.** The payload contradicts itself or the map: a base reported
    unable to launch that has squadrons flying from it, a SAM with no units listed but a
-   threat ring, a flight with a negative `startup_min` that the plan still counts on.
+   threat ring, a flight whose `startup_min` is below -30 that the plan still counts on.
 2. **A plan a commander would not make.** A strike routed through a live SAM ring with no
-   DEAD or SEAD in the package; an escort whose TOT puts it behind the strikers; a package
-   whose TOT falls outside the mission window; squadrons sitting idle while a front has no
-   CAS; the same target hit twice while a better one is ignored.
+   DEAD or SEAD in the package; an escort whose TOT puts it behind the strikers; squadrons
+   sitting idle while a front has no CAS; the same target hit twice while a better one is
+   ignored.
 3. **Something the planner cannot express at all.** A move a good commander would make that
    no field or package type here allows. Name the move and why it matters.
 4. **A judgement call.** Reasonable people could plan it either way. Say so, and keep it short.
@@ -80,8 +80,10 @@ report is a good report.
   BARCAP aims at something of red's own: a base, or a site from
   `GET /retribution-ai/ground/mine` (red's own sites; `targets` only lists blue's).
 - `packages[].tot` is the time over target (`HH:MM`, mission clock). In a flight,
-  `startup_min` is minutes from mission start to engine start: **negative means it cannot
-  make its TOT**. `tot_offset_min` is that flight's TOT against the package's; negative is
+  `startup_min` is minutes from the turn's clock to engine start. The game starts the
+  mission up to 30 minutes early for a ground start that needs it, so a small negative
+  number is normal; **below -30 the flight cannot make its TOT**. `weapons` is what the
+  jet carries in the mission, by pylon, after the campaign's weapon-date rule. `tot_offset_min` is that flight's TOT against the package's; negative is
   ahead of it, which is what SEAD and escorts want.
 - Flights in one package fly the join, ingress and split legs together. A waypoint list
   shows each point's type (`JOIN`, `INGRESS_*`, `TARGET_*`, `SPLIT`, `PATROL`, ...),
@@ -92,7 +94,9 @@ report is a good report.
   it: kill a power source or a comms node and the sites behind it lose their network. With
   `advanced: false` there is no such wiring and only the sites matter.
 - `prev_turns`: `trend` is each side's aircraft and base armor at the start of each turn;
-  `last_turn` is what the last mission cost each side; `events` is the campaign log.
+  `last_turn` is what the last mission cost each side; `events` is the human's campaign
+  log with the sides named: Blue is the human, Red is you. "friendly" in a line means the
+  side that line is about.
 
 ## Rules of this engine worth knowing before you call something a bug
 
@@ -162,9 +166,10 @@ Every write answers with `ok`, and `detail` or `error`. One bad item never sinks
   cancels ones on order, for the money back.
 - `POST /retribution-ai/buy/ground` with `{"cp_id", "unit_name", "quantity"}`: a unit from
   `buyable_ground`, at a red base with `can_recruit_ground`. Arrives next turn.
-- `GET /retribution-ai/validate`: checks the whole plan. `ok: false` means a package is
-  outside the mission window, cannot make its TOT, or has seats without pilots. It also
-  counts the aircraft you left with no task.
+- `GET /retribution-ai/validate`: checks the whole plan. `ok: false` means a package
+  cannot make its TOT or has seats without pilots; `issues` lists them. `notes` never
+  fail the plan: a TOT after the mission window, a package the mission starts early
+  for, and the aircraft you left with no task.
 - `GET`, `PUT` (replace), `POST` (merge) `/retribution-ai/notes` with `{"notes": {...}}`,
   and `DELETE /retribution-ai/notes/{key}`: your notes, saved with the campaign. Keep
   your plan and what you learned about the human there; nothing else carries over.
@@ -175,8 +180,9 @@ every turn, so none of these stops while you command.
 
 ### Planning well
 
-- The mission window is `settings.desired_player_mission_duration_min` long. A package
-  whose TOT is outside it flies when nobody is watching, or not at all.
+- The mission window is `settings.desired_player_mission_duration_min` long: how long
+  the human plans to fly, not a limit. A TOT after it may land when nobody is watching.
+  On a big map the scripted planner's own raids arrive after it; that is not a fault.
 - Keep red's airspace covered: a base with no BARCAP over it is open to blue's strikes.
 - Strike where a SAM ring covers the route only with SEAD or DEAD in the package.
 - Spend `idle_flyable` on purpose. Aircraft held back are fine; aircraft forgotten are not.

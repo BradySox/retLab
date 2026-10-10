@@ -62,13 +62,15 @@ class PackageCheck(BaseModel):
     within_window: Optional[bool] = None
     uncrewed: Optional[int] = None
     earliest_tot_minutes: Optional[int] = None  # only when the TOT cannot be made
+    starts_mission_early_min: Optional[int] = None  # §104; the TOT is still made
 
 
 class ValidateResult(BaseModel):
-    ok: bool  # every package crewed, reachable and inside the mission window
+    ok: bool  # every package crewed and able to make its TOT
     mission_window_min: int
     packages: list[PackageCheck]
-    issues: Optional[list[str]] = None
+    issues: Optional[list[str]] = None  # what makes ok false
+    notes: Optional[list[str]] = None  # worth knowing; never makes ok false
 
 
 class OpResult(BaseModel):
