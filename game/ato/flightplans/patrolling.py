@@ -11,7 +11,7 @@ from game.ato.flightwaypointtype import FlightWaypointType
 from game.ato.starttype import StartType
 from game.ato.tankeravailability import tanking_time
 from game.typeguard import self_type_guard
-from game.utils import Distance, Speed, nautical_miles
+from game.utils import Distance, Speed, meters, nautical_miles
 from .uizonedisplay import UiZone, UiZoneDisplay
 
 if TYPE_CHECKING:
@@ -52,6 +52,20 @@ def climb_out_time(departure: FlightWaypoint, first: FlightWaypoint) -> timedelt
     return JOIN_UP_TIME + timedelta(minutes=gain_ft / CLIMB_RATE_FT_PER_MIN)
 
 
+def support_spawns_on_station(flight: Any) -> bool:
+    """True for an AI support flight the air-start setting put in the air.
+
+    The setting promises on station from mission start. Spawned over its own
+    field instead, a Kola A-50 took 31 minutes to reach a track 190 NM away
+    (2026-10-10), so these spawn on the track and their route out costs no time.
+    """
+    if getattr(flight, "start_type", None) is not StartType.IN_FLIGHT:
+        return False
+    if flight.client_count:
+        return False
+    return bool(flight.coalition.game.settings.support_air_start)
+
+
 def step_back_from_threat(
     orbit_distance: Distance, *, threatened: bool, step: Distance
 ) -> Distance:
@@ -86,6 +100,23 @@ class PatrollingFlightPlan(StandardFlightPlan[LayoutT], UiZoneDisplay, ABC):
         within this range of the flight's current position (or the center of the zone)
         will be engaged by the flight.
         """
+
+    @property
+    def starts_on_station(self) -> bool:
+        """Whether the flight spawns on its track rather than flying out to it."""
+        return False
+
+    def _leads_to_station(self, waypoint: FlightWaypoint) -> bool:
+        if waypoint is self.layout.patrol_start:
+            return True
+        return any(waypoint is nav for nav in self.layout.nav_to)
+
+    def travel_time_between_waypoints(
+        self, a: FlightWaypoint, b: FlightWaypoint
+    ) -> timedelta:
+        if self.starts_on_station and self._leads_to_station(b):
+            return timedelta()
+        return super().travel_time_between_waypoints(a, b)
 
     @property
     def patrol_start_time(self) -> datetime:
@@ -157,6 +188,8 @@ class PatrollingFlightPlan(StandardFlightPlan[LayoutT], UiZoneDisplay, ABC):
             hours = self.patrol_duration.total_seconds() / 3600.0
             laps = nautical_miles(self.patrol_speed.knots * hours)
             return max(laps, super().fuel_burn_distance_between_points(a, b))
+        if self.starts_on_station and self._leads_to_station(b):
+            return meters(0)
         return super().fuel_burn_distance_between_points(a, b)
 
     def takeoff_time(self) -> datetime:

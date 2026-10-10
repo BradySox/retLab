@@ -7,7 +7,11 @@ from dcs import Point
 from game.ato.flighttype import FlightType
 from game.utils import Distance, Heading, feet, meters, nautical_miles
 from .ibuilder import IBuilder
-from .patrolling import PatrollingLayout, step_back_from_threat
+from .patrolling import (
+    PatrollingLayout,
+    step_back_from_threat,
+    support_spawns_on_station,
+)
 from .refuelingflightplan import RefuelingFlightPlan
 from .waypointbuilder import WaypointBuilder
 
@@ -16,6 +20,10 @@ if TYPE_CHECKING:
 
 
 class TheaterRefuelingFlightPlan(RefuelingFlightPlan):
+    @property
+    def starts_on_station(self) -> bool:
+        return support_spawns_on_station(self.flight)
+
     @staticmethod
     def builder_type() -> Type[Builder]:
         return Builder
