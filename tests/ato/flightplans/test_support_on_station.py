@@ -82,6 +82,13 @@ def _plan(cls: Any, flight: Any, monkeypatch: pytest.MonkeyPatch) -> Any:
     return plan
 
 
+def _spawner(plan: Any, *, in_flight: bool = False, passed_start: bool = False) -> Any:
+    state = SimpleNamespace()
+    if in_flight:
+        state.has_passed_waypoint = lambda _: passed_start
+    return SimpleNamespace(flight=SimpleNamespace(flight_plan=plan, state=state))
+
+
 @pytest.mark.parametrize(
     "start_type,clients,setting,expected",
     [
@@ -149,8 +156,7 @@ def test_spawns_short_of_the_track_on_its_own_line(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     plan = _plan(AewcFlightPlan, _flight(), monkeypatch)
-    spawner = SimpleNamespace(flight=SimpleNamespace(flight_plan=plan))
-    spawn = FlightGroupSpawner._on_station_spawn(spawner)  # type: ignore[arg-type]
+    spawn = FlightGroupSpawner._on_station_spawn(_spawner(plan))
     assert spawn is not None
     position, altitude, alt_type = spawn
     start, end = plan.layout.patrol_start.position, plan.layout.patrol_end.position
@@ -167,8 +173,24 @@ def test_a_flight_that_flies_out_spawns_over_its_field(
 ) -> None:
     flight = _flight(start_type=StartType.WARM)
     plan = _plan(AewcFlightPlan, flight, monkeypatch)
-    spawner = SimpleNamespace(flight=SimpleNamespace(flight_plan=plan))
-    assert FlightGroupSpawner._on_station_spawn(spawner) is None  # type: ignore[arg-type]
+    assert FlightGroupSpawner._on_station_spawn(_spawner(plan)) is None
+
+
+def test_the_sim_still_on_the_way_out_spawns_on_the_track(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Generation at mission start finds the flight airborne on its first leg.
+    plan = _plan(AewcFlightPlan, _flight(), monkeypatch)
+    spawner = _spawner(plan, in_flight=True, passed_start=False)
+    assert FlightGroupSpawner._on_station_spawn(spawner) is not None
+
+
+def test_a_flight_the_sim_has_on_its_track_spawns_where_it_is(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    plan = _plan(AewcFlightPlan, _flight(), monkeypatch)
+    spawner = _spawner(plan, in_flight=True, passed_start=True)
+    assert FlightGroupSpawner._on_station_spawn(spawner) is None
 
 
 def test_the_route_out_is_left_off_the_mission(

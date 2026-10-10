@@ -377,6 +377,9 @@ class FlightGroupSpawner:
         pos = self.flight.state.estimate_position()
         pos += Vector2(random.randint(100, 1000), random.randint(100, 1000))
         alt, alt_type = self.flight.state.estimate_altitude()
+        on_station = self._on_station_spawn()
+        if on_station is not None:
+            pos, alt, alt_type = on_station
         cp = self.flight.squadron.location.id
 
         if cp not in self.mission_data.cp_stack:
@@ -423,13 +426,18 @@ class FlightGroupSpawner:
     def _on_station_spawn(self) -> Optional[Tuple[Point, Distance, str]]:
         """Where a support flight that starts on station spawns, or None.
 
-        Position, altitude and altitude reference. See
-        ``support_spawns_on_station`` in game/ato/flightplans/patrolling.py.
+        Position, altitude and altitude reference. None once the sim has the
+        flight on its track, where its estimated position is the better answer.
+        See ``support_spawns_on_station`` in game/ato/flightplans/patrolling.py.
         """
         plan = self.flight.flight_plan
         if not getattr(plan, "starts_on_station", False):
             return None
         start, end = plan.layout.patrol_start, plan.layout.patrol_end
+        # Only an airborne state can answer; a flight waiting to start has not.
+        passed = getattr(self.flight.state, "has_passed_waypoint", None)
+        if passed is not None and passed(start):
+            return None
         away_from_track = end.position.heading_between_point(start.position)
         pos = start.position.point_from_heading(
             away_from_track, ON_STATION_LEAD_IN.meters
