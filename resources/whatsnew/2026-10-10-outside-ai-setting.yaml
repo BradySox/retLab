@@ -1,0 +1,12 @@
+date: 2026-10-10
+title: Outside AI plans red moved into Settings
+change: >-
+  Outside AI plans red is now a normal setting under Campaign Management >
+  HQ automation. You can tick it on the new game wizard's Campaign options
+  page when you start a campaign, or in Settings later. The Developer tools
+  tick box is gone. A save that had it ticked keeps it ticked. Copy AI
+  connect link is still in Developer tools.
+watch: >-
+  Start a new campaign and search the Campaign options page for "Outside
+  AI". Tick it, finish the wizard, and the AI on your connect link reports
+  commander mode.

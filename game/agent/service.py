@@ -1,7 +1,7 @@
 """The one layer every transport calls; behaviour lives here so transports cannot drift.
 
 Ported from juanjux/dcs-escalation `game/agent/service.py` (LGPL-3). Reads are always
-open; writes need Developer tools > Outside AI plans red ticked. Every function that takes
+open; writes need the Outside AI plans red setting on. Every function that takes
 ``side`` refuses anything but red, here rather than in a router, so a second
 transport cannot forget the rule: blue's ATO is the human's private side of the board.
 Design note: docs/dev/design/retlab-llm-opfor-notes.md.
@@ -117,7 +117,9 @@ def capabilities() -> dict[str, Any]:
     game = _require_game()
     return {
         "name": "RetLab OPFOR AI",
-        "mode": "commander" if game.opfor_ai_enabled else "read and report",
+        "mode": (
+            "commander" if game.settings.outside_ai_plans_red else "read and report"
+        ),
         "side": OPFOR_SIDE,
         "docs": "GET /retribution-ai/start, then /retribution-ai/howtoplay",
         "reads": [
@@ -145,7 +147,7 @@ def capabilities() -> dict[str, Any]:
                 "buy/ground",
                 "notes (PUT replace, POST merge, DELETE one key)",
             ]
-            if game.opfor_ai_enabled
+            if game.settings.outside_ai_plans_red
             else []
         ),
     }
@@ -155,15 +157,16 @@ def capabilities() -> dict[str, Any]:
 
 
 class WritesOffError(PermissionError):
-    """Raised when the AI writes while the Developer tools toggle is off."""
+    """Raised when the AI writes while Outside AI plans red is off."""
 
 
 def _writable_game() -> Game:
     game = _require_game()
-    if not game.opfor_ai_enabled:
+    if not game.settings.outside_ai_plans_red:
         raise WritesOffError(
             "red is planned by the game's own planner: the human has not ticked "
-            "Developer tools > Outside AI plans red, so this API is read-only"
+            "Settings > Campaign Management > Outside AI plans red, so this API is "
+            "read-only"
         )
     return game
 
@@ -255,7 +258,7 @@ def run_fallback_if_needed(game: Game) -> bool:
     """At Take Off: if the AI cleared red's plan and planned nothing in its place, the
     scripted planner flies red's missions so the turn is never empty. True when it ran.
     """
-    if not game.opfor_ai_enabled or game.red.ato.packages:
+    if not game.settings.outside_ai_plans_red or game.red.ato.packages:
         return False
     game.red.plan_missions(game.conditions.start_time)
     return True

@@ -289,6 +289,7 @@ _LAYOUT_SPEC: list[tuple[str, list[tuple[str, list[str]]]]] = [
                     "auto_ato_behavior_awacs",
                     "auto_ato_behavior_tankers",
                     "auto_ato_player_missions_asap",
+                    "outside_ai_plans_red",
                     "automate_front_line_stance",
                     "default_front_line_stance",
                 ],

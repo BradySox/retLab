@@ -110,7 +110,7 @@ report is a good report.
 
 ## When you command red
 
-The human ticked **Developer tools > Outside AI plans red**. Red's missions and purchases
+The human ticked **Settings > Campaign Management > Outside AI plans red**. Red's missions and purchases
 are yours. Red is still **{RED_FACTION}**: you fly its squadrons from its bases, and pay
 for everything out of `economy.budget`. You can do what a player can do on their own
 side, and nothing more: no free aircraft, no moving bases, no reading blue's packages.

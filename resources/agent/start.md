@@ -9,7 +9,7 @@ You work for red. `GET /retribution-ai/capabilities` says which job you have:
 
 - **`"mode": "read and report"`**: red is planned by the game's own scripted planner. You
   read red's turn and tell the human what looks wrong. Every write is refused.
-- **`"mode": "commander"`**: the human ticked Developer tools > Outside AI plans red. Red's
+- **`"mode": "commander"`**: the human ticked the Outside AI plans red setting. Red's
   missions and purchases are yours to change this turn. The scripted planner has already
   planned and bought for red: keep its plan, change it or clear it.
 

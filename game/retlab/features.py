@@ -903,6 +903,8 @@ FEATURES: tuple[Feature, ...] = (
     Feature(
         # Read-only REST API under /retribution-ai for an outside AI reviewing red's
         # turn (game/agent/); docs/dev/design/retlab-llm-opfor-notes.md.
+        # outside_ai_plans_red is not listed: a listed boolean gate moves to the
+        # RetLab Features page, and this one stays on HQ automation (DM call).
         "llm_opfor_reader",
         "Outside AI reads red's turn",
         109,

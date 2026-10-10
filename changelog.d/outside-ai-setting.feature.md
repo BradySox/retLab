@@ -1,0 +1,1 @@
+* **[UI]** Outside AI plans red is now a setting on Campaign Management > HQ automation, so it can be ticked on the new game wizard's Campaign options page as well as in Settings. The Developer tools tick box is removed; a save that had it ticked keeps it ticked.
