@@ -11,10 +11,12 @@ from game.ato.flightwaypointtype import FlightWaypointType
 from game.ato.starttype import StartType
 from game.ato.tankeravailability import tanking_time
 from game.typeguard import self_type_guard
-from game.utils import Distance, Speed, nautical_miles
+from game.utils import Distance, Speed, meters, nautical_miles
 from .uizonedisplay import UiZone, UiZoneDisplay
 
 if TYPE_CHECKING:
+    from dcs import Point
+
     from ..flightwaypoint import FlightWaypoint
     from .flightplan import FlightPlan
 
@@ -52,6 +54,20 @@ def climb_out_time(departure: FlightWaypoint, first: FlightWaypoint) -> timedelt
     return JOIN_UP_TIME + timedelta(minutes=gain_ft / CLIMB_RATE_FT_PER_MIN)
 
 
+def support_spawns_on_station(flight: Any) -> bool:
+    """True for an AI support flight the air-start setting put in the air.
+
+    The setting promises on station from mission start. Spawned over its own
+    field instead, a Kola A-50 took 31 minutes to reach a track 190 NM away
+    (2026-10-10), so these spawn on the track and their route out costs no time.
+    """
+    if getattr(flight, "start_type", None) is not StartType.IN_FLIGHT:
+        return False
+    if flight.client_count:
+        return False
+    return bool(flight.coalition.game.settings.support_air_start)
+
+
 def step_back_from_threat(
     orbit_distance: Distance, *, threatened: bool, step: Distance
 ) -> Distance:
@@ -63,6 +79,71 @@ def step_back_from_threat(
     both cases walked a threatened anchor's extra orbits toward the zone.
     """
     return orbit_distance + step if threatened else orbit_distance - step
+
+
+#: Room a support track keeps from a neutral border. The turn at each end is
+#: flown outside the two points: an E-3A flew 7.5 NM off its leg (test 36).
+NEUTRAL_BORDER_MARGIN = nautical_miles(8)
+NEUTRAL_SLIDE_LIMIT = nautical_miles(60)
+
+
+def _airspace_closed_to(coalition: Any) -> list[Any]:
+    """Borders of the countries that would intercept this side (§98)."""
+    game = getattr(coalition, "game", None)
+    theater = getattr(game, "theater", None)
+    zones = getattr(theater, "neutral_border_zones", None)
+    settings = getattr(game, "settings", None)
+    if not zones or not getattr(settings, "neutral_border_defense", False):
+        return []
+    from shapely.geometry import Polygon
+
+    is_blue = coalition.player.is_blue
+    return [
+        Polygon(zone.border).buffer(0)
+        for zone in zones
+        if len(zone.border) >= 3 and zone.enforces_against(theater, is_blue)
+    ]
+
+
+def slide_clear_of_neutral_airspace(
+    start: Point, end: Point, coalition: Any, threat_zones: Any
+) -> tuple[Point, Point]:
+    """Slide a support track along its own length, out of neutral airspace.
+
+    The smallest move either way that clears it, never into a threat zone the
+    track was clear of. Along the track rather than back toward the anchor: on
+    Kola the line home runs through Finland, so back needed 110-120 NM where
+    along needed 5 and 22 (2026-10-10). Unchanged when nothing in reach is clear.
+    """
+    closed = _airspace_closed_to(coalition)
+    if not closed:
+        return start, end
+    from shapely.geometry import LineString
+
+    def clear(a: Point, b: Point) -> bool:
+        corridor = LineString([(a.x, a.y), (b.x, b.y)]).buffer(
+            NEUTRAL_BORDER_MARGIN.meters
+        )
+        return not any(corridor.intersects(country) for country in closed)
+
+    if clear(start, end):
+        return start, end
+    was_threatened = threat_zones.threatened(start) or threat_zones.threatened(end)
+    along = end.heading_between_point(start)
+    step = nautical_miles(1).meters
+    for count in range(1, int(NEUTRAL_SLIDE_LIMIT.nautical_miles) + 1):
+        for direction in (1, -1):
+            move = direction * count * step
+            a = start.point_from_heading(along, move)
+            b = end.point_from_heading(along, move)
+            if not clear(a, b):
+                continue
+            if not was_threatened and (
+                threat_zones.threatened(a) or threat_zones.threatened(b)
+            ):
+                continue
+            return a, b
+    return start, end
 
 
 class PatrollingFlightPlan(StandardFlightPlan[LayoutT], UiZoneDisplay, ABC):
@@ -86,6 +167,23 @@ class PatrollingFlightPlan(StandardFlightPlan[LayoutT], UiZoneDisplay, ABC):
         within this range of the flight's current position (or the center of the zone)
         will be engaged by the flight.
         """
+
+    @property
+    def starts_on_station(self) -> bool:
+        """Whether the flight spawns on its track rather than flying out to it."""
+        return False
+
+    def _leads_to_station(self, waypoint: FlightWaypoint) -> bool:
+        if waypoint is self.layout.patrol_start:
+            return True
+        return any(waypoint is nav for nav in self.layout.nav_to)
+
+    def travel_time_between_waypoints(
+        self, a: FlightWaypoint, b: FlightWaypoint
+    ) -> timedelta:
+        if self.starts_on_station and self._leads_to_station(b):
+            return timedelta()
+        return super().travel_time_between_waypoints(a, b)
 
     @property
     def patrol_start_time(self) -> datetime:
@@ -157,6 +255,8 @@ class PatrollingFlightPlan(StandardFlightPlan[LayoutT], UiZoneDisplay, ABC):
             hours = self.patrol_duration.total_seconds() / 3600.0
             laps = nautical_miles(self.patrol_speed.knots * hours)
             return max(laps, super().fuel_burn_distance_between_points(a, b))
+        if self.starts_on_station and self._leads_to_station(b):
+            return meters(0)
         return super().fuel_burn_distance_between_points(a, b)
 
     def takeoff_time(self) -> datetime:

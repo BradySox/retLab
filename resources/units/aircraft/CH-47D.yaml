@@ -13,3 +13,6 @@ tasks:
   Air Assault: 90
   CSAR: 85
   Transport: 70
+
+# No air-to-air refueling in DCS.
+air_refuel_type: none

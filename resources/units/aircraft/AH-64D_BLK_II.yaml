@@ -42,3 +42,6 @@ secondary_tasks:
 # Era gate for the DCS EPLRS (datalink) task. Sourcing and the permissive-when-absent
 # rule: docs/dev/design/retlab-datalink-era-notes.md
 datalink_introduced: 2003
+
+# No air-to-air refueling in DCS.
+air_refuel_type: none

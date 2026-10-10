@@ -25,3 +25,6 @@ tasks:
   SEAD: 10
   SEAD Escort: 10
   Strike: 230
+
+# No air-to-air refueling in DCS.
+air_refuel_type: none

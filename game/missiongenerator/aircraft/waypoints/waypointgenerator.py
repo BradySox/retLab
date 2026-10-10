@@ -122,11 +122,15 @@ class WaypointGenerator:
             # steerpoint the jet does not have and every later row is off by one.
             waypoints = [w for w in waypoints if not self.refuel_was_dropped(w)]
 
+        flown_before_spawn = self.points_flown_before_spawn()
+
         filtered_points: list[FlightWaypoint] = []
         for point in self.flight.points:
             if point.only_for_player and not self.flight.client_count:
                 continue
             if self.refuel_was_dropped(point):
+                continue
+            if any(point is skipped for skipped in flown_before_spawn):
                 continue
             if isinstance(self.flight.state, InFlight):
                 if self.flight.flight_type in [
@@ -381,6 +385,16 @@ class WaypointGenerator:
                 anchor.properties = PointProperties()
                 points.insert(i + n, anchor)
             i += segments
+
+    def points_flown_before_spawn(self) -> list[FlightWaypoint]:
+        """The way out to the track, for a support flight that spawns on it.
+
+        Left in the route, DCS flies the group back to them from the track.
+        """
+        plan = self.flight.flight_plan
+        if not getattr(plan, "starts_on_station", False):
+            return []
+        return list(plan.layout.nav_to)
 
     def refuel_was_dropped(self, waypoint: FlightWaypoint) -> bool:
         return any(waypoint is dropped for dropped in self.dropped_refuels)

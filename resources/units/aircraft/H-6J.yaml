@@ -26,3 +26,6 @@ tasks:
   Strike: 650
 secondary_tasks:
   - Armed Recon
+
+# No air-to-air refueling in DCS.
+air_refuel_type: none

@@ -118,3 +118,21 @@ the strike gets no time allowance, as before. AI jets tank until full regardless
   as a racetrack.
 - **Not flown since the return.** Filling up on one leg, and the map drag in the app, are
   row B206.
+
+## On station at mission start, and neutral airspace (2026-10-10)
+
+Read off turn 1 of a Kola game through the outside-AI link:
+
+- The A-50 and IL-78 air-started over Severomorsk-1 and Olenya, 190 and 210 NM from
+  their tracks, and were on station 31 and 34 minutes in. The air-start setting says on
+  station from mission start. An AI AEW&C or theater tanker under that setting now
+  spawns 3 NM short of its track start, on the track's own line, so its first leg is
+  flown toward the far end.
+- The tanker's track ran 11 NM into neutral Finland and the A-50's ended 4 NM from the
+  border. Sliding a track back toward its anchor does not clear it on this map: the line
+  from the Kola bases runs through Finland, and back needed 120 and 110 NM. Sliding along
+  the track's own length needed 22 and 5 NM and keeps the distance from the threat.
+- Not changed: red's strikers and the tanker's flight home still cross about 70 NM of
+  Finland. §98 never engages AI, so this is a track placement rule, not a route rule.
+
+Not flown. Row B208.

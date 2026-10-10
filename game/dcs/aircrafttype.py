@@ -95,7 +95,14 @@ class AirRefuelType(Enum):
 
     @classmethod
     def from_data(cls, value: Optional[str]) -> Optional["AirRefuelType"]:
-        return cls(value) if value is not None else None
+        if value is None or value == NO_AIR_REFUEL:
+            return None
+        return cls(value)
+
+
+#: The ``air_refuel_type`` an airframe is authored with when DCS gives it no way
+#: to take fuel in the air. Not a method, so it never adds tanker demand.
+NO_AIR_REFUEL = "none"
 
 
 @dataclass(frozen=True)
@@ -308,6 +315,10 @@ class AircraftType(UnitType[Type[FlyingType]]):
     #: it unspecified, which is treated permissively (compatible with any tanker) so
     #: untagged aircraft behave exactly as before.
     air_refuel_type: Optional[AirRefuelType] = None
+
+    #: Authored ``air_refuel_type: none``: no tanker serves this airframe. Unset
+    #: was read as "takes any tanker", which sent a Su-25 to an IL-78 track.
+    cannot_air_refuel: bool = False
 
     #: Refueling methods this aircraft provides as a *tanker*. Empty leaves it
     #: unspecified/permissive (can service any receiver), preserving legacy behavior.
@@ -663,12 +674,15 @@ class AircraftType(UnitType[Type[FlyingType]]):
     def can_refuel_from(self, tanker: AircraftType) -> bool:
         """Whether this aircraft (as a receiver) can take fuel from ``tanker``.
 
-        Permissive when either side is untagged so the restriction is opt-in and never
+        Never for a receiver authored ``air_refuel_type: none``. Otherwise
+        permissive when either side is untagged so the restriction is opt-in and never
         regresses existing campaigns: a receiver with no ``air_refuel_type``, or a
         tanker that advertises no ``tanker_refuel_types``, is always compatible. Once
         both are tagged, the boom/probe methods must match, and a helicopter receiver
         additionally requires a tanker flagged ``tanker_refuels_helicopters``.
         """
+        if self.cannot_air_refuel:
+            return False
         if self.air_refuel_type is None:
             return True
         if not tanker.tanker_refuel_types:
@@ -862,6 +876,7 @@ class AircraftType(UnitType[Type[FlyingType]]):
             ],
             use_f15e_waypoint_names=data.get("use_f15e_waypoint_names", False),
             air_refuel_type=AirRefuelType.from_data(data.get("air_refuel_type")),
+            cannot_air_refuel=data.get("air_refuel_type") == NO_AIR_REFUEL,
             tanker_refuel_types=frozenset(
                 AirRefuelType(v) for v in data.get("tanker_refuel_types", [])
             ),

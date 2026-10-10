@@ -18,5 +18,5 @@ tasks:
   Fighter sweep: 500
   TARCAP: 500
 
-# Air-to-air refueling method (receiver).
-air_refuel_type: probe
+# No air-to-air refueling in DCS.
+air_refuel_type: none

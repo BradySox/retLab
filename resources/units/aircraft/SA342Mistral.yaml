@@ -22,3 +22,6 @@ variants:
 kneeboard_units: "metric"
 tasks:
   Escort: 80
+
+# No air-to-air refueling in DCS.
+air_refuel_type: none

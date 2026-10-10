@@ -1,0 +1,10 @@
+date: 2026-10-10
+title: Jets that cannot refuel no longer plan a tanker stop
+change: >-
+  Aircraft with no way to refuel in the air in DCS, such as the Su-25,
+  Su-17M4, MiG-23MLD, MiG-25PD, Su-27 and MiG-29, no longer get a refuel
+  waypoint and are never sent to a tanker track. Before, a fuel-short one
+  could be routed to a tanker it cannot use.
+watch: >-
+  A Su-25 or MiG-23 flight has no REFUEL point on its route, while a
+  Su-24 or MiG-31 flight still does when a tanker is up.

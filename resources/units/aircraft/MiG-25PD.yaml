@@ -33,3 +33,6 @@ tasks:
   Escort: 390
   Fighter sweep: 390
   TARCAP: 390
+
+# No air-to-air refueling in DCS.
+air_refuel_type: none

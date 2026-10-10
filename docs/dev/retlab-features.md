@@ -2182,6 +2182,34 @@ defect that reached a build, most of them found by flying.
   (`TankerBoxLayout` survives as a loader only). Tankers of different packages stay
   2,000 ft apart. Measurements and the retry conditions:
   `design/retlab-tanker-box-notes.md`.
+- **Air-started support spawns on its track (2026-10-10, DM call; row B208).** With
+  *Support aircraft (AWACS/tankers) start in the air* on, an AI AEW&C or theater tanker
+  spawns 3 NM short of its track start at track altitude (`_on_station_spawn`,
+  `flightgroupspawner.py`) instead of over its own field, on both sides. The plan side is
+  `PatrollingFlightPlan.starts_on_station` (`support_spawns_on_station`, `patrolling.py`):
+  the legs out to the track cost no time and no fuel, so ASAP timing puts the flight on
+  station at mission start, and the route-out waypoints are left off the mission
+  (`WaypointGenerator.points_flown_before_spawn`). Read off a Kola turn: an A-50 and an
+  IL-78 spawned over Severomorsk-1 and Olenya and were on station 31 and 34 minutes in.
+  A package's own tanker, a carrier recovery tanker, a jammer and a player-crewed flight
+  are unchanged. Tests `tests/ato/flightplans/test_support_on_station.py`.
+- **Support tracks stay out of neutral airspace (2026-10-10, DM call; row B208).** An
+  AEW&C or theater tanker track that touches a country §98 would have intercept its side
+  slides along its own length, the smallest move either way that clears the border by
+  8 NM, never into a threat zone it was clear of, at most 60 NM
+  (`slide_clear_of_neutral_airspace`, `patrolling.py`). Along the track, not back toward
+  the anchor: on Kola the line home runs through Finland, so back needed 110 to 120 NM
+  where along needed 5 and 22. Off with the border setting. Routes are not rerouted:
+  strikers and the tanker's own flight home still cross neutral airspace. Tests
+  `tests/ato/flightplans/test_support_track_neutral_airspace.py`.
+- **Airframes that cannot refuel (2026-10-10, DM call).** `air_refuel_type: none` marks an
+  airframe DCS gives no way to take fuel in the air (`AircraftType.cannot_air_refuel`).
+  No tanker serves it, the planner gives it no REFUEL waypoint, and it adds no tanker
+  demand. An unset tag still means "takes any tanker", which is what sent a fuel-short
+  Su-25 to an IL-78 track. 84 base-DCS airframes carry it, each one whose DCS unit data
+  has no `Refuelable` attribute; 12 of them had been tagged `probe` (Su-27, Su-30,
+  Tu-22M3, the MiG-29s, J-11A, four Mirage F1s). Modded airframes were not audited.
+  Tests `tests/dcs/test_air_refuel_compatibility.py`.
 - **Refuel before the push (built 2026-10-07, DM call, not flown — row B189).** A
   per-flight box on the Waypoints tab (`Flight.refuel_before_push`, default off) puts a
   REFUEL waypoint between Hold and Join (`FormationAttackLayout.pre_push_refuel`, strike-

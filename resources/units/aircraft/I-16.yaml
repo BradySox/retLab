@@ -27,3 +27,6 @@ tasks:
   Fighter sweep: 20
   OCA/Aircraft: 60
   TARCAP: 20
+
+# No air-to-air refueling in DCS.
+air_refuel_type: none

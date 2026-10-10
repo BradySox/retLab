@@ -38,7 +38,7 @@ from game.ato.traveltime import GroundSpeed
 from game.missiongenerator.missiondata import MissionData
 from game.naming import namegen
 from game.theater import Airfield, ControlPoint, Fob, NavalControlPoint, OffMapSpawn
-from game.utils import feet, meters
+from game.utils import Distance, feet, meters, nautical_miles
 from pydcs_extensions import A_4E_C, VSN_F4B, VSN_F4C
 
 WARM_START_HELI_ALT = meters(500)
@@ -55,6 +55,10 @@ MINIMUM_MID_MISSION_SPAWN_ALTITUDE_MSL = feet(6000)
 MINIMUM_MID_MISSION_SPAWN_ALTITUDE_AGL = feet(500)
 
 STACK_SEPARATION = feet(200)
+
+# An on-station spawn sits this far short of the track, on the track's own line,
+# so its first leg is flown toward the far end instead of starting on a waypoint.
+ON_STATION_LEAD_IN = nautical_miles(3)
 
 RTB_ALTITUDE = meters(800)
 RTB_DISTANCE = 5000
@@ -373,6 +377,9 @@ class FlightGroupSpawner:
         pos = self.flight.state.estimate_position()
         pos += Vector2(random.randint(100, 1000), random.randint(100, 1000))
         alt, alt_type = self.flight.state.estimate_altitude()
+        on_station = self._on_station_spawn()
+        if on_station is not None:
+            pos, alt, alt_type = on_station
         cp = self.flight.squadron.location.id
 
         if cp not in self.mission_data.cp_stack:
@@ -416,6 +423,27 @@ class FlightGroupSpawner:
             unit.alt_type = alt_type
         return group
 
+    def _on_station_spawn(self) -> Optional[Tuple[Point, Distance, str]]:
+        """Where a support flight that starts on station spawns, or None.
+
+        Position, altitude and altitude reference. None once the sim has the
+        flight on its track, where its estimated position is the better answer.
+        See ``support_spawns_on_station`` in game/ato/flightplans/patrolling.py.
+        """
+        plan = self.flight.flight_plan
+        if not getattr(plan, "starts_on_station", False):
+            return None
+        start, end = plan.layout.patrol_start, plan.layout.patrol_end
+        # Only an airborne state can answer; a flight waiting to start has not.
+        passed = getattr(self.flight.state, "has_passed_waypoint", None)
+        if passed is not None and passed(start):
+            return None
+        away_from_track = end.position.heading_between_point(start.position)
+        pos = start.position.point_from_heading(
+            away_from_track, ON_STATION_LEAD_IN.meters
+        )
+        return pos, start.alt, start.alt_type
+
     def _generate_at_airfield(
         self,
         name: str,
@@ -449,7 +477,10 @@ class FlightGroupSpawner:
         at = origin.position
 
         alt_type = "RADIO"
-        if isinstance(origin, OffMapSpawn):
+        on_station = self._on_station_spawn()
+        if on_station is not None:
+            pos, alt, alt_type = on_station
+        elif isinstance(origin, OffMapSpawn):
             alt = self.flight.flight_plan.waypoints[0].alt
             alt_type = self.flight.flight_plan.waypoints[0].alt_type
         elif self.flight.unit_type.helicopter:
@@ -462,7 +493,8 @@ class FlightGroupSpawner:
             self.mission_data.cp_stack[origin.id] += STACK_SEPARATION
 
         speed = GroundSpeed.for_flight(self.flight, alt)
-        pos = at + Vector2(random.randint(100, 1000), random.randint(100, 1000))
+        if on_station is None:
+            pos = at + Vector2(random.randint(100, 1000), random.randint(100, 1000))
 
         group = self.mission.flight_group(
             country=self.country,

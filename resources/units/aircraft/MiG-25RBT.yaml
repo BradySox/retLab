@@ -31,3 +31,6 @@ variants:
 tasks:
   CAS: 70
   Strike: 150
+
+# No air-to-air refueling in DCS.
+air_refuel_type: none

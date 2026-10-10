@@ -9,7 +9,9 @@ from game.ato.flightplans.ibuilder import IBuilder
 from game.ato.flightplans.patrolling import (
     PatrollingFlightPlan,
     PatrollingLayout,
+    slide_clear_of_neutral_airspace,
     step_back_from_threat,
+    support_spawns_on_station,
 )
 from game.ato.flightplans.waypointbuilder import WaypointBuilder
 from game.ato.flighttype import FlightType
@@ -23,6 +25,13 @@ AEWC_ORBIT_SPACING = nautical_miles(20)
 
 
 class AewcFlightPlan(PatrollingFlightPlan[PatrollingLayout]):
+    @property
+    def starts_on_station(self) -> bool:
+        # JAMMING shares this plan and is not a support flight the setting names.
+        return self.flight.flight_type is FlightType.AEWC and support_spawns_on_station(
+            self.flight
+        )
+
     @property
     def patrol_duration(self) -> timedelta:
         return self.flight.coalition.game.settings.desired_awacs_mission_duration
@@ -131,6 +140,9 @@ class Builder(IBuilder[AewcFlightPlan, PatrollingLayout]):
 
         racetrack_end = racetrack_center.point_from_heading(
             orbit_heading.left.degrees, racetrack_half_distance
+        )
+        racetrack_start, racetrack_end = slide_clear_of_neutral_airspace(
+            racetrack_start, racetrack_end, self.coalition, self.threat_zones
         )
 
         builder = WaypointBuilder(self.flight)

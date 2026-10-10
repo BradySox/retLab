@@ -27,3 +27,6 @@ tasks:
   OCA/Aircraft: 150
   OCA/Runway: 130
   Strike: 130
+
+# No air-to-air refueling in DCS.
+air_refuel_type: none

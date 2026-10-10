@@ -28,3 +28,6 @@ tasks:
   CAS: 460
   Escort: 90
   OCA/Aircraft: 460
+
+# No air-to-air refueling in DCS.
+air_refuel_type: none
