@@ -187,7 +187,7 @@ applies every mod toggle off and asserts nothing is stripped.
 | `restrict_weapons_by_date`, `restrict_props_by_date` | The Lot 20 Hornet, Block 50 Viper and Apache stand in for the F/A-18A, F-16A and AH-64A |
 | `neutral_border_defense` (+ `neutralborder` plugin) | Sweden and Finland |
 | `naval_magazines`, `naval_weapon_release_stagger` (+ `navalmagazines` plugin) | §81 |
-| `ownfor_default_qra_reserve: 2`, `opfor_default_qra_reserve: 2` | §1; Bodo's Eagles and the Kola interceptors |
+| `ownfor_default_qra_reserve: 2`, `opfor_default_qra_reserve: 4` | §1; Bodo's Eagles hold a pair, each red fighter squadron holds four. See below |
 | `c2_decapitation_effects` | Three C2 cells are authored (Severomorsk, Olenya, Banak) |
 | `max_mission_range_planes: 400` | A cap on each airframe's own range; opens Murmansk to the bombers |
 | `airbase_threat_range: 300` | Patrols. See below |
@@ -206,8 +206,20 @@ patrol and left 20 interceptors idle. Measured by re-planning that turn headless
 | 300 NM, 30 min | 12 pairs | 18 pairs | red: the carrier strike; blue: 3 strikes and a DEAD |
 
 Severomorsk-1, Olenya and Monchegorsk are over 300 NM from any blue field and get no
-patrol at any setting; their cover is the QRA pair and the SAMs. The setting is shared by
-both sides. A campaign's settings apply to new games only.
+patrol at any setting; their cover is the QRA reserve and the SAMs. The setting is shared
+by both sides. A campaign's settings apply to new games only.
+
+**Red's alert reserve (DM call 2026-10-10).** The red-only lever for a more defensive red.
+A fresh game's first turn, planned twice at each size with the 300 NM range:
+
+| Reserve per red fighter squadron | On alert | Patrols | Raids |
+|---|---|---|---|
+| 2 | 10 | 4 flights, 9 to 11 jets | 4: CAS, 2 anti-ship, 1 DEAD |
+| 4 (**chosen**) | 20 | 3 to 4 flights, 7 to 10 jets | 3 to 4: the DEAD dropped in one run |
+| 6 | 28 | 2 to 3 flights, 6 to 8 jets | 2: CAS, 1 anti-ship |
+
+A larger reserve adds no patrols: it takes jets out of the pool the planner draws both
+patrols and escorts from. Blue stays at 2.
 
 Left off on purpose: GPS jamming and ship-launched cruise missile raids. Neither is 1985 kit
 for the side that would use it here.
@@ -236,7 +248,7 @@ naval layout has no landing-ship slot.
 ## Not verified
 
 Everything above is measured headless. A fresh game builds, both sides plan a first turn, and
-the 14 lock tests pass. **Nothing has been flown.** Row B207 covers the first flight:
+the 15 lock tests pass. **Nothing has been flown.** Row B207 covers the first flight:
 
 - the SAM launchers stand level and raise;
 - the front forms on drivable ground near Skibotn;
