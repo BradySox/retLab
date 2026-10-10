@@ -44,9 +44,10 @@ settings:
   # §81: the sea fight is the campaign. Finite anti-ship stock, staggered release.
   naval_magazines: true
   naval_weapon_release_stagger: true
-  # §1: Bodo's Eagles and the Kola interceptors hold an alert pair.
+  # §1: Bodo's Eagles hold an alert pair; each red fighter squadron holds four.
+  # Six per squadron halves red's raids and thins its patrols as well.
   ownfor_default_qra_reserve: 2
-  opfor_default_qra_reserve: 2
+  opfor_default_qra_reserve: 4
   # §52: three C2 cells are authored (Severomorsk, Olenya, Banak).
   c2_decapitation_effects: true
   # The carrier is 390 NM from Severomorsk and Andoya 385 NM from Olenya. The gate

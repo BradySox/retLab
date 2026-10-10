@@ -200,6 +200,16 @@ def test_the_road_and_the_sea_lanes(loaded: tuple[Campaign, ConflictTheater]) ->
     assert opposed == [frozenset(("Bardufoss", "Alta"))]
 
 
+def test_red_holds_a_larger_alert_reserve_than_blue(
+    loaded: tuple[Campaign, ConflictTheater],
+) -> None:
+    # DM call 2026-10-10: red defends in depth from alert. Measured on a fresh game,
+    # 6 per squadron halves red's raids; the note has the table.
+    campaign, _ = loaded
+    assert campaign.settings["opfor_default_qra_reserve"] == 4
+    assert campaign.settings["ownfor_default_qra_reserve"] == 2
+
+
 def test_the_patrol_range_reaches_across_the_front(
     loaded: tuple[Campaign, ConflictTheater],
 ) -> None:
