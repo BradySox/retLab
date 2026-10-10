@@ -2193,6 +2193,11 @@ defect that reached a build, most of them found by flying.
   IL-78 spawned over Severomorsk-1 and Olenya and were on station 31 and 34 minutes in.
   A package's own tanker, a carrier recovery tanker, a jammer and a player-crewed flight
   are unchanged. Tests `tests/ato/flightplans/test_support_on_station.py`.
+  The station time is not extended for the flight out it skips (DM call): it stays the
+  two settings, and *Desired tanker on-station time* now goes to 300 minutes like the
+  AWACS one, so a longer stay is set by hand. The carrier recovery tanker reads the same
+  setting for where its station sits (20 kt times the minutes) and keeps the old
+  150-minute bound (`recovery_station_time`, `shiprecoverytanker.py`).
 - **Support tracks stay out of neutral airspace (2026-10-10, DM call; row B208).** An
   AEW&C or theater tanker track that touches a country §98 would have intercept its side
   slides along its own length, the smallest move either way that clears the border by
